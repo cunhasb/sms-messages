@@ -73,5 +73,16 @@ class Message(Base):
     user_id = Column(Integer, ForeignKey('user_id', ondelete='CASCADE'))
     user_customer_id = Column()
 
-    customer_of = relationship(
-        "CustomerOf", primaryjoin="and_(User_Customer.id == foreign(Message.user_customer_id),""User_Customer.user_id==Message.user_id)")
+    customer = relationship(
+        "Customer", primaryjoin="and_(User_Customer.id == foreign(Message.user_customer_id),""User_Customer.user_id==Message.user_id)")
+
+    @property
+    def serialize(self):
+        # Returns object data in easily serializeable information
+        return{
+            'id': self.id,
+            'message_uuid': self.message_uuid,
+            'user_id': self.user_id,
+            'customer_id': self.user_customer_id
+
+        }
