@@ -1,4 +1,4 @@
-from flask import Flask, render_tremplate, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_security import Security, login_required, SQLAlchemySessionUserDatastore, current_user
 from flask_mail import Mail
 from celery import Celery
@@ -36,13 +36,23 @@ current_user
 @app.before_first_request
 def create_user():
     init_db()
-    # user_datastore.create_user(
-    #     email='someUser@gmail.com', password='password')
-    # db_session.commit()
 
+    # user_datastore.create_user(
+    #     email='yetanotherUser@gmail.com', password='password', phone='1733934673309', username='yetanothercompanyname')
+    # db_session.commit()
+    # customer = User_Customer(
+    #     name='Peter3', email='peter3@gmail.com', phone='444556667', user_id=4)
+    # db_session.add(customer)
+    # db_session.commit()
+    #
+    # message = Message(message_uuid="kd447474Fkdkjdkjhdjd89jkljoihjrrk90909948484dj0fdf9d0fd9f0",
+    #                   user_id=4, user_customer_id=11)
+    #
+    # db_session.add(message)
+    # db_session.commit()
+# pdb.set_trace()
 # Views
 # API's Endpoints (GET request only)
-
 # Setup the task
 # @celery.task
 # def send_security_email(**kwargs):
@@ -58,15 +68,13 @@ def create_user():
 # @celery.task
 # def send_security_email(**kwargs):
 #     mail.send(Message(**kwargs))
-
-
 # @security.send_mail_task
 # def delay_security_email(msg):
 #     mail.send(subject=msg.subject, sender=msg.sender,
 #                               recipients=msg.recipients, body=msg.body)
-
 # @security.context_processor
 # def security_context_processor(*arg):
+
 
 @app.route('/')
 @app.route('/users/JSON/')

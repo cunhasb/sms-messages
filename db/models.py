@@ -1,5 +1,5 @@
 from db.database import Base
-from flask_security import UserMixiin, RoleMixin
+from flask_security import UserMixin, RoleMixin
 from sqlalchemy import create_engine
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy import Boolean, DateTime, Column, ForeignKey, String, Integer
@@ -26,8 +26,8 @@ class User(Base, UserMixin):
     __tablename__ = 'user'
     id = Column(Integer(), primary_key=True)
     email = Column(String(255), unique=True)
-    phone = Column(String(14)), nullable = False, unique = True
-    username Column(String(255))
+    phone = Column(String(14), nullable=False, unique=True)
+    username = Column(String(255))
     password = Column(String(255))
     api_id = Column(String(255))
     auth_id = Column(String(255))
@@ -41,14 +41,25 @@ class User(Base, UserMixin):
     roles = relationship('Role', secondary='roles_users',
                          backref=backref('users', lazy='dynamic'))
 
+    @property
+    def serialize(self):
+        # Returns object data in easily serializeable format
+        return {
+            'id': self.id,
+            'username': self.username,
+            'phone': self.phone,
+            'email': self.email,
+
+        }
+
 
 class User_Customer(Base):
     __tablename__ = 'user_customer'
 
     id = Column(Integer, primary_key=True)
     name = Column(String(250), nullable=False)
-    phone = Column(String(14), nullable=false, unique=True)
-    email = Column(String(255), unique=true)
+    phone = Column(String(14), nullable=False, unique=True)
+    email = Column(String(255), unique=True)
     user_id = Column(Integer, ForeignKey('user.id', ondelete='CASCADE'))
     user = relationship(User, single_parent=True)
 
@@ -60,7 +71,7 @@ class User_Customer(Base):
             'name': self.name,
             'phone': self.phone,
             'email': self.email,
-            'user_id': self.user.id,
+            'user_id': self.user_id,
 
         }
 
@@ -70,11 +81,12 @@ class Message(Base):
     __tablename__ = 'message'
     id = Column(Integer(), primary_key=True)
     message_uuid = Column(String(255), unique=True)
-    user_id = Column(Integer, ForeignKey('user_id', ondelete='CASCADE'))
-    user_customer_id = Column()
+    user_id = Column(Integer, ForeignKey('user.id', ondelete='CASCADE'))
+    user_customer_id = Column(
+        Integer, ForeignKey('user_customer.id', ondelete='CASCADE'))
 
     customer = relationship(
-        "Customer", primaryjoin="and_(User_Customer.id == foreign(Message.user_customer_id),""User_Customer.user_id==Message.user_id)")
+        "User_Customer", primaryjoin="and_(User_Customer.id == foreign(Message.user_customer_id),""User_Customer.user_id==Message.user_id)")
 
     @property
     def serialize(self):

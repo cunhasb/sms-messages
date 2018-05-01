@@ -13,7 +13,7 @@ GRANT'''
 
 
 engine = create_engine(
-    'postgresql://sms:sms-admin-Password@localhost:5432/sms-admin')
+    'postgresql://sms-admin:sms-admin-Password@localhost:5432/sms')
 db_session = scoped_session(sessionmaker(autocommit=False, bind=engine))
 Base = declarative_base()
 Base.query = db_session.query_property()
@@ -29,7 +29,7 @@ def init_db():
 def connect(user, password, db, host='localhost', port=5432):
     '''Returns a connection and a metadata object.
     We connect with the help of PostgreSQL URL
-    postgresql://SMS:sms-admin-Password@localhost:5432/sms-admin'''
+    postgresql://sms-admin:sms-admin-Password@localhost:5432/sms'''
 
     url = 'postgresql://{}:{}@{}:{}/{}'
     url = url.format(user, password, host, port, db)
