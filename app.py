@@ -1,7 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_security import Security, login_required, SQLAlchemySessionUserDatastore, current_user
+from flask_security.forms import RegisterForm
 from flask_mail import Mail
 from celery import Celery
+from wtforms import StringField
+from wtforms.validators import InputRequired
 from werkzeug.contrib.fixers import ProxyFix
 from sqlalchemy.orm import sessionmaker
 from db.database import db_session, init_db
@@ -14,7 +17,7 @@ app = Flask(__name__)
 app.config['DEBUG'] = True
 app.config['SECRET_KEY'] = 'super_secret_key'
 app.config['SECURITY_PASSWORD_SALT'] = 'super_secret_password_salt'
-app.config['SECURITY_REGISTRABLE'] = True
+app.config['SECURITY_REGISTERABLE'] = True
 app.config['SECURITY_TRACKABLE'] = True
 app.config['SECURITY_SEND_REGISTER_EMAIL'] = False
 # app.config['MAIL_SERVER'] = 'smtp.gmail.com.'
@@ -24,8 +27,18 @@ app.config['SECURITY_SEND_REGISTER_EMAIL'] = False
 # app.config['MAIL_PASSWORD'] = 'password'
 
 # Setup Flask-Security
+
+
+class ExtendedRegisterForm(RegisterForm):
+    username = StringField(
+        "Username",  [InputRequired("Please enter your username.")])
+    phone = StringField(
+        "Phone Number",  [InputRequired("Please enter your phone number.")])
+
+
 user_datastore = SQLAlchemySessionUserDatastore(db_session, User, Role)
-security = Security(app, user_datastore)
+security = Security(app, user_datastore,
+                    register_form=ExtendedRegisterForm)
 current_user
 # pdb.set_trace()
 # mail = Mail(app)
@@ -37,19 +50,7 @@ current_user
 def create_user():
     init_db()
 
-    # user_datastore.create_user(
-    #     email='yetanotherUser@gmail.com', password='password', phone='1733934673309', username='yetanothercompanyname')
-    # db_session.commit()
-    # customer = User_Customer(
-    #     name='Peter3', email='peter3@gmail.com', phone='444556667', user_id=4)
-    # db_session.add(customer)
-    # db_session.commit()
-    #
-    # message = Message(message_uuid="kd447474Fkdkjdkjhdjd89jkljoihjrrk90909948484dj0fdf9d0fd9f0",
-    #                   user_id=4, user_customer_id=11)
-    #
-    # db_session.add(message)
-    # db_session.commit()
+
 # pdb.set_trace()
 # Views
 # API's Endpoints (GET request only)
@@ -77,6 +78,12 @@ def create_user():
 
 
 @app.route('/')
+# @login_required
+def home():
+    # this is the landing page
+    return render_template('home.html', current_user=current_user)
+
+
 @app.route('/users/JSON/')
 # @login_required
 def usersJSON():
@@ -85,7 +92,7 @@ def usersJSON():
 
 
 @app.route('/user/<int:user_id>/customers/JSON/')
-# @login_required
+@login_required
 def userCustomersJSON(user_id):
     # pdb.set_trace()
     user = db_session.query(User).filter_by(id=user_id)
@@ -99,6 +106,43 @@ def userCustomersJSON(user_id):
 def messagesJSON():
     messages = db_session.query(Message).all()
     return jsonify(Message=[i.serialize for i in messages])
+
+
+@app.route('/user/customer/new', methods=['GET', 'POST'])
+@login_required
+def newCustomer():
+    # This page will be for creating a new Customer
+    if request.method == 'POST':
+        # user = db_session.query(
+        #     User).filter_by(id=current_user.id).one()
+        newCustomer = User_Customer(
+            name=request.form['name'], email=request.form['email'], phone=request.form['phone'], user_id=current_user.id)
+        db_session.add(newCustomer)
+        db_session.commit()
+        flash('%s was sucessfully added!' % request.form['name'])
+        return redirect(url_for('newCustomer', current_user=current_user))
+    else:
+        # pdb.set_trace()
+        return render_template('newCustomer.html', current_user=current_user)
+
+
+@app.route('/user/message/new', methods=['GET', 'POST'])
+@login_required
+def newMessage():
+    # This page will be for creating a new Customer
+    if request.method == 'POST':
+        # user = db_session.query(
+        #     User).filter_by(id=current_user.id).one()
+        message_uui_id = 'api call response'
+        newMessage = User_Customer(
+            user_id=current_user.id, customer_id=request.form['customer_id'], message_uui_id=message_uui_id, message=request.form['message'])
+        db_session.add(newCustomer)
+        db_session.commit()
+        flash('The message was sucessfully created!')
+        return redirect(url_for('newMessage', current_user=current_user))
+    else:
+        # pdb.set_trace()
+        return render_template('newMessage.html', current_user=current_user)
 
 
 if __name__ == '__main__':

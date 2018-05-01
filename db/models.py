@@ -33,6 +33,7 @@ class User(Base, UserMixin):
     auth_id = Column(String(255))
     last_login_at = Column(DateTime())
     current_login_at = Column(DateTime())
+    current_login_ip = Column(String(100))
     last_login_ip = Column(String(100))
     current_login_at = Column(String(100))
     login_count = Column(Integer())
@@ -81,6 +82,7 @@ class Message(Base):
     __tablename__ = 'message'
     id = Column(Integer(), primary_key=True)
     message_uuid = Column(String(255), unique=True)
+    message = Column(String())
     user_id = Column(Integer, ForeignKey('user.id', ondelete='CASCADE'))
     user_customer_id = Column(
         Integer, ForeignKey('user_customer.id', ondelete='CASCADE'))

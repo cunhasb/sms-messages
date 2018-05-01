@@ -1,0 +1,56 @@
+{%extends 'base.html'%}
+{%block container%}
+{% with messages = get_flashed_messages()%}
+{%if messages%}
+<ul>
+  {% for message in messages %}
+    <li><strong>{{message}}</strong></li>
+    {%endfor%}
+  </ul>
+  {%endif%}
+  {%endwith%}
+<form class="needs-validation" action='{{url_for('newCustomer',current_user=current_user)}}' method='POST'>
+  <div class="form-row">
+    <div class="col-md-4 mb-3">
+      <label for="newCustomer">Customer Name</label>
+      <input name='name' type="text" class="form-control" id="customerName" placeholder="Customer Name" required>
+    </div><div class="col-md-4 mb-3">
+    <label for="phone">Phone Number</label>
+  <input type="tel" class="form-control" id="customerTel" name='phone' aria-describedby="telHelp" placeholder="Enter Phone Number" required></div>
+      <div class="col-md-4 mb-3">
+      <label for="email">Email address</label>
+    <input type="email" class="form-control" id="customerEmail" name='email' aria-describedby="emailHelp" placeholder="Enter email">
+
+    </div>
+  </div>
+   <button class="btn btn-primary" type="submit">Add new Customer</button>
+</form>
+<script>
+// Example starter JavaScript for disabling form submissions if there are invalid fields
+(() => {
+  "use strict";
+  window.addEventListener(
+    "load",
+    function() {
+      // Fetch all the forms we want to apply custom Bootstrap validation styles to
+      const forms = document.getElementsByClassName("needs-validation");
+      // Loop over them and prevent submission
+      Array.prototype.filter.call(forms, form => {
+        form.addEventListener(
+          "submit",
+          event => {
+            if (form.checkValidity() === false) {
+              event.preventDefault();
+              event.stopPropagation();
+            }
+            form.classList.add("was-validated");
+          },
+          false
+        );
+      });
+    },
+    false
+  );
+})();
+</script>
+{% endblock %}
