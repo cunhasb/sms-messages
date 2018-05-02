@@ -104,6 +104,7 @@ class Message(Base):
     id = Column(Integer(), primary_key=True)
     message_uuid = Column(String(255), unique=True)
     message = Column(String())
+    direction = Column(String(10))
     user_id = Column(Integer, ForeignKey('user.id', ondelete='CASCADE'))
     user_customer_id = Column(
         Integer, ForeignKey('user_customer.id', ondelete='CASCADE'))
@@ -118,6 +119,8 @@ class Message(Base):
             'id': self.id,
             'message_uuid': self.message_uuid,
             'user_id': self.user_id,
-            'customer_id': self.user_customer_id
+            'customer_id': self.user_customer_id,
+            'message': self.message,
+            'direction': self.direction
 
         }

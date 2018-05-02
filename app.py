@@ -14,7 +14,7 @@ from Crypto.Cipher import AES
 import binascii
 import datetime
 import pdb
-import math
+import plivo
 
 # Create app
 
@@ -94,6 +94,7 @@ def create_user():
 # def security_context_processor(*arg):
 
 
+# Landing Page
 @app.route('/')
 # @login_required
 def home():
@@ -101,35 +102,47 @@ def home():
     return render_template('home.html', current_user=current_user)
 
 
-@app.route('/users/JSON/')
-# @login_required
-def usersJSON():
-    users = db_session.query(User).all()
-    return jsonify(Users=[i.serialize for i in users])
+"""--------------------------------------------------------------------------
 
 
-@app.route('/user/<int:user_id>/customers/JSON/')
+                                    Views
+
+ ----------------------------------------------------------------------------
+"""
+
+
+@app.route('/user/api-clients/')
 @login_required
-def userCustomersJSON(user_id):
+def ApiClients():
+    clients = db_session.query(User_Api_Client).filter_by(
+        user_id=current_user.id).all()
+    return render_template('apiClients.html', clients=clients)
+
+
+@app.route('/user/customers/')
+@login_required
+def Customers():
+    customers = db_session.query(User_Customer).filter_by(
+        user_id=current_user.id).all()
+    return render_template('customers.html', customers=customers)
+
+
+@app.route('/user/messages/')
+@login_required
+def SmsMessages():
+    sms_messages = db_session.query(Message).filter_by(
+        user_id=current_user.id).order_by(Message.id.desc()).all()
     # pdb.set_trace()
-    user = db_session.query(User).filter_by(id=user_id)
-    customers = db_session.query(
-        User_Customer).filter_by(user_id=user_id).all()
-    return jsonify(User=[i.serialize for i in user], User_Customer=[i.serialize for i in customers])
+    return render_template('messages.html', sms_messages=sms_messages)
 
 
-@app.route('/messages/JSON')
-# @login_required
-def messagesJSON():
-    messages = db_session.query(Message).all()
-    return jsonify(Message=[i.serialize for i in messages])
+"""--------------------------------------------------------------------------
 
 
-@app.route('/user/api-clients/JSON')
-# @login_required
-def apiClientsJSON():
-    apiClients = db_session.query(User_Api_Client).all()
-    return jsonify(User_Api_Client=[i.serialize for i in apiClients])
+                                    Create
+
+ ----------------------------------------------------------------------------
+"""
 
 
 @app.route('/user/api-client/new', methods=['GET', 'POST'])
@@ -139,15 +152,6 @@ def apiClient():
     # pdb.set_trace()
     # this page will be for creating API Clients
     if request.method == 'POST':
-        # pdb.set_trace()
-        # strings to be encrypted need to be multiples of 16
-        # obj = AES.new('super_secret_key', AES.MODE_CBC,
-        #               'super_secret_IV_')
-        # paddedApiId = obj.encrypt(("{0:%s}" % (int(math.ceil(
-        #     len(request.form['api_id']) / 16.0) * 16))).format(request.form['api_id']))
-        # paddedAuthId = obj.encrypt(("{0:%s}" % (int(math.ceil(
-        #     len(request.form['auth_id']) / 16.0) * 16))).format(request.form['auth_id']))
-        # pdb.set_trace()
 
         newClient = User_Api_Client(
             name=request.form['name'], api_id=aes_encrypt(request.form['api_id']), auth_id=aes_encrypt(request.form['auth_id']), user_id=current_user.id)
@@ -185,23 +189,120 @@ def newMessage():
     # This page will be for creating a new Customer
     customers = db_session.query(
         User_Customer).filter_by(user_id=current_user.id).all()
-    print ('customers', len(customers))
-    if request.method == 'POST':
-        pdb.set_trace()
-        apiClient = db_session.query(User_Api_Client).filter_by(
-            user_id=current_user.id).one()
 
-        message_uuid = datetime.datetime.now()
+    if request.method == 'POST':
+        apiClient = db_session.query(User_Api_Client).filter_by(
+            user_id=current_user.id).all()[0]
+        destinationNumbers = list(map(lambda x: db_session.query(User_Customer).filter_by(
+            id=int(x)).one().phone, request.form.getlist('customerSelect')))
+
+        # Commented out to not make unnecessary api calls
+        # client = plivo.RestClient(
+        #     auth_id=aes_decrypt(apiClient.api_id), auth_token=aes_decrypt(apiClient.auth_id))
+        # response = client.messages.create(
+        #     src=current_user.phone,
+        #     dst="<".join(destinationNumbers),
+        #     text=request.form['message'], )
         # pdb.set_trace()
-        newMessage = Message(
-            user_id=current_user.id, user_customer_id=int(request.form['customer_id']), message_uuid=message_uuid, message=request.form['message'])
-        db_session.add(newMessage)
-        db_session.commit()
+
+        message_uuid = []
+        for i in destinationNumbers:
+            message_uuid.append(datetime.datetime.now())
+        # pdb.set_trace()
+        response = {'message_uuid': message_uuid}
+        # uncomment below when using api
+        # for i, uuid in enumerate(response.message_uuid, 0):
+        for i, uuid in enumerate(response['message_uuid'], 0):
+            newMessage = Message(
+                user_id=current_user.id, user_customer_id=int(request.form.getlist('customerSelect')[i]), message_uuid=uuid, message=request.form['message'], direction="outbound")
+            db_session.add(newMessage)
+            db_session.commit()
         flash('The message was sucessfully created!')
         return redirect(url_for('newMessage', customers=customers, current_user=current_user))
     else:
         # pdb.set_trace()
         return render_template('newMessage.html', customers=customers, current_user=current_user)
+
+
+@app.route('/user/message/inbound/new', methods=['GET', 'POST'])
+@login_required
+def newMessage():
+    # This page will be for creating a new Customer
+    customers = db_session.query(
+        User_Customer).filter_by(user_id=current_user.id).all()
+
+    if request.method == 'POST':
+        apiClient = db_session.query(User_Api_Client).filter_by(
+            user_id=current_user.id).all()[0]
+        destinationNumbers = list(map(lambda x: db_session.query(User_Customer).filter_by(
+            id=int(x)).one().phone, request.form.getlist('customerSelect')))
+
+        # Commented out to not make unnecessary api calls
+        # client = plivo.RestClient(
+        #     auth_id=aes_decrypt(apiClient.api_id), auth_token=aes_decrypt(apiClient.auth_id))
+        # response = client.messages.create(
+        #     src=current_user.phone,
+        #     dst="<".join(destinationNumbers),
+        #     text=request.form['message'], )
+        # pdb.set_trace()
+
+        message_uuid = []
+        for i in destinationNumbers:
+            message_uuid.append(datetime.datetime.now())
+        # pdb.set_trace()
+        response = {'message_uuid': message_uuid}
+        # uncomment below when using api
+        # for i, uuid in enumerate(response.message_uuid, 0):
+        for i, uuid in enumerate(response['message_uuid'], 0):
+            newMessage = Message(
+                user_id=current_user.id, user_customer_id=int(request.form.getlist('customerSelect')[i]), message_uuid=uuid, message=request.form['message'], direction="outbound")
+            db_session.add(newMessage)
+            db_session.commit()
+        flash('The message was sucessfully created!')
+        return redirect(url_for('newMessage', customers=customers, current_user=current_user))
+    else:
+        # pdb.set_trace()
+        return render_template('newMessage.html', customers=customers, current_user=current_user)
+
+
+"""--------------------------------------------------------------------------
+
+
+                                    API
+
+ ----------------------------------------------------------------------------
+"""
+
+
+@app.route('/users/JSON/')
+# @login_required
+def usersJSON():
+    users = db_session.query(User).all()
+    return jsonify(Users=[i.serialize for i in users])
+
+
+@app.route('/user/<int:user_id>/customers/JSON/')
+@login_required
+def userCustomersJSON(user_id):
+    # pdb.set_trace()
+    user = db_session.query(User).filter_by(id=user_id)
+    customers = db_session.query(
+        User_Customer).filter_by(user_id=user_id).all()
+    return jsonify(User=[i.serialize for i in user], User_Customer=[i.serialize for i in customers])
+
+
+@app.route('/messages/JSON')
+# @login_required
+def messagesJSON():
+    messages = db_session.query(Message).all()
+    return jsonify(Message=[i.serialize for i in messages])
+
+
+@app.route('/user/api-clients/JSON')
+# @login_required
+def apiClientsJSON():
+    apiClients = db_session.query(User_Api_Client).all()
+    return jsonify(User_Api_Client=[i.serialize for i in apiClients])
 
 
 if __name__ == '__main__':

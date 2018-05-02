@@ -9,14 +9,13 @@
   </ul>
   {%endif%}
   {%endwith%}
-<form class="needs-validation" action='{{url_for('newMessage',current_user=current_user)}}' method='POST'>
+<form class="needs-validation" action='{{url_for('newMessage')}}' method='POST'>
   <div class="form-row">
     <div class="col-md-6 mb-6">
       <div class="input-group-prepend">
    <label class="input-group-text" for="inputGroupSelect01">Customer</label>
  </div>
- <select class="custom-select" id="inputGroupSelect01" name='customer_id'>
-   <option selected>Choose...</option>
+ <select class="form-control " id="customerSelect" name='customerSelect'multiple required>
    {% for customer in customers %}
      <option value={{customer.id}}><strong>{{customer.name + " - " + customer.phone }}</strong></option>
      {%endfor%}
