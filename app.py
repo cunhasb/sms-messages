@@ -8,8 +8,13 @@ from wtforms.validators import InputRequired
 from werkzeug.contrib.fixers import ProxyFix
 from sqlalchemy.orm import sessionmaker
 from db.database import db_session, init_db
-from db.models import Base, User, User_Customer, Message, Role
+from db.models import Base, User, User_Api_Client, User_Customer, Message, Role
+# python -m pip install pycrypto otherwise would not work
+from Crypto.Cipher import AES
+import binascii
+import datetime
 import pdb
+import math
 
 # Create app
 
@@ -29,7 +34,19 @@ app.config['SECURITY_SEND_REGISTER_EMAIL'] = False
 # Setup Flask-Security
 
 
+def aes_encrypt(data):
+    cipher = AES.new('super_secret_key')
+    data = data + (" " * (16 - (len(data) % 16)))
+    return binascii.hexlify(cipher.encrypt(data)).decode('ascii')
+
+
+def aes_decrypt(data):
+    cipher = AES.new('super_secret_key')
+    return cipher.decrypt(binascii.unhexlify(data)).rstrip().decode('ascii')
+
+
 class ExtendedRegisterForm(RegisterForm):
+
     username = StringField(
         "Username",  [InputRequired("Please enter your username.")])
     phone = StringField(
@@ -39,8 +56,8 @@ class ExtendedRegisterForm(RegisterForm):
 user_datastore = SQLAlchemySessionUserDatastore(db_session, User, Role)
 security = Security(app, user_datastore,
                     register_form=ExtendedRegisterForm)
-current_user
 # pdb.set_trace()
+current_user
 # mail = Mail(app)
 
 # Create a user to test with
@@ -108,13 +125,49 @@ def messagesJSON():
     return jsonify(Message=[i.serialize for i in messages])
 
 
+@app.route('/user/api-clients/JSON')
+# @login_required
+def apiClientsJSON():
+    apiClients = db_session.query(User_Api_Client).all()
+    return jsonify(User_Api_Client=[i.serialize for i in apiClients])
+
+
+@app.route('/user/api-client/new', methods=['GET', 'POST'])
+@login_required
+def apiClient():
+
+    # pdb.set_trace()
+    # this page will be for creating API Clients
+    if request.method == 'POST':
+        # pdb.set_trace()
+        # strings to be encrypted need to be multiples of 16
+        # obj = AES.new('super_secret_key', AES.MODE_CBC,
+        #               'super_secret_IV_')
+        # paddedApiId = obj.encrypt(("{0:%s}" % (int(math.ceil(
+        #     len(request.form['api_id']) / 16.0) * 16))).format(request.form['api_id']))
+        # paddedAuthId = obj.encrypt(("{0:%s}" % (int(math.ceil(
+        #     len(request.form['auth_id']) / 16.0) * 16))).format(request.form['auth_id']))
+        # pdb.set_trace()
+
+        newClient = User_Api_Client(
+            name=request.form['name'], api_id=aes_encrypt(request.form['api_id']), auth_id=aes_encrypt(request.form['auth_id']), user_id=current_user.id)
+
+        print('new_client=', newClient.api_id, newClient.auth_id)
+        db_session.add(newClient)
+        db_session.commit()
+        flash('%s was sucessfully added!' % request.form['name'])
+        return redirect(url_for('apiClient'))
+    else:
+        # pdb.set_trace()
+        return render_template('apiClient.html')
+
+
 @app.route('/user/customer/new', methods=['GET', 'POST'])
 @login_required
 def newCustomer():
     # This page will be for creating a new Customer
     if request.method == 'POST':
-        # user = db_session.query(
-        #     User).filter_by(id=current_user.id).one()
+
         newCustomer = User_Customer(
             name=request.form['name'], email=request.form['email'], phone=request.form['phone'], user_id=current_user.id)
         db_session.add(newCustomer)
@@ -130,19 +183,25 @@ def newCustomer():
 @login_required
 def newMessage():
     # This page will be for creating a new Customer
+    customers = db_session.query(
+        User_Customer).filter_by(user_id=current_user.id).all()
+    print ('customers', len(customers))
     if request.method == 'POST':
-        # user = db_session.query(
-        #     User).filter_by(id=current_user.id).one()
-        message_uui_id = 'api call response'
-        newMessage = User_Customer(
-            user_id=current_user.id, customer_id=request.form['customer_id'], message_uui_id=message_uui_id, message=request.form['message'])
-        db_session.add(newCustomer)
+        pdb.set_trace()
+        apiClient = db_session.query(User_Api_Client).filter_by(
+            user_id=current_user.id).one()
+
+        message_uuid = datetime.datetime.now()
+        # pdb.set_trace()
+        newMessage = Message(
+            user_id=current_user.id, user_customer_id=int(request.form['customer_id']), message_uuid=message_uuid, message=request.form['message'])
+        db_session.add(newMessage)
         db_session.commit()
         flash('The message was sucessfully created!')
-        return redirect(url_for('newMessage', current_user=current_user))
+        return redirect(url_for('newMessage', customers=customers, current_user=current_user))
     else:
         # pdb.set_trace()
-        return render_template('newMessage.html', current_user=current_user)
+        return render_template('newMessage.html', customers=customers, current_user=current_user)
 
 
 if __name__ == '__main__':

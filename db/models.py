@@ -29,8 +29,6 @@ class User(Base, UserMixin):
     phone = Column(String(14), nullable=False, unique=True)
     username = Column(String(255))
     password = Column(String(255))
-    api_id = Column(String(255))
-    auth_id = Column(String(255))
     last_login_at = Column(DateTime())
     current_login_at = Column(DateTime())
     current_login_ip = Column(String(100))
@@ -50,7 +48,30 @@ class User(Base, UserMixin):
             'username': self.username,
             'phone': self.phone,
             'email': self.email,
+            'password': self.password
 
+        }
+
+
+class User_Api_Client(Base):
+    __tablename__ = 'user_api_client'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(250), nullable=False)
+    api_id = Column(String(255))
+    auth_id = Column(String(255))
+    user_id = Column(Integer, ForeignKey('user.id', ondelete='CASCADE'))
+    user = relationship(User, single_parent=True)
+
+    @property
+    def serialize(self):
+        # Returns object data in easily serializeable format
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'name': self.name,
+            'api_id': self.api_id,
+            'auth_id': self.auth_id
         }
 
 

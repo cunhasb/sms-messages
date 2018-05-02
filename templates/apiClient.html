@@ -9,25 +9,21 @@
   </ul>
   {%endif%}
   {%endwith%}
-<form class="needs-validation" action='{{url_for('newMessage',current_user=current_user)}}' method='POST'>
+<form class="needs-validation" action='{{url_for('apiClient')}}' method='POST'>
   <div class="form-row">
-    <div class="col-md-6 mb-6">
-      <div class="input-group-prepend">
-   <label class="input-group-text" for="inputGroupSelect01">Customer</label>
- </div>
- <select class="custom-select" id="inputGroupSelect01" name='customer_id'>
-   <option selected>Choose...</option>
-   {% for customer in customers %}
-     <option value={{customer.id}}><strong>{{customer.name + " - " + customer.phone }}</strong></option>
-     {%endfor%}
- </select>
-    </div>
-    <div class="col-md-8 mb-4">
-    <label for="message">Your Message</label>
-   <textarea class="form-control" id="message" name ='message' rows="5" placeholder="Enter Your Message" required></textarea></div>
+    <div class="col-md-4 mb-3">
+      <label for="clientName">API Client Name</label>
+      <input name='name' type="text" class="form-control" id="clientName" placeholder="Client Name" required>
+    </div><div class="col-md-4 mb-3">
+    <label for="api_id">Client API Id</label>
+  <input type="text" class="form-control" id="api_id" name='api_id' aria-describedby="textHelp" placeholder="Enter API Id" required></div>
+      <div class="col-md-4 mb-3">
+      <label for="auth_id">AUTH Code</label>
+    <input type="text" class="form-control" id="auth_id" name='auth_id' aria-describedby="textHelp" placeholder="Enter API AUTH Code">
 
+    </div>
   </div>
-   <button class="btn btn-primary" type="submit">Create new Message</button>
+   <button class="btn btn-primary" type="submit">Add new Client API</button>
 </form>
 <script>
 // Example starter JavaScript for disabling form submissions if there are invalid fields
