@@ -232,34 +232,24 @@ def newMessage():
         User_Customer).filter_by(user_id=current_user.id).all()
 
     if request.method == 'POST':
-        apiClient = db_session.query(User_Api_Client).filter_by(
-            user_id=current_user.id).all()[0]
-        destinationNumbers = list(map(lambda x: db_session.query(User_Customer).filter_by(
-            id=int(x)).one().phone, request.form.getlist('customerSelect')))
-
-        # Commented out to not make unnecessary api calls
-        # client = plivo.RestClient(
-        #     auth_id=aes_decrypt(apiClient.api_id), auth_token=aes_decrypt(apiClient.auth_id))
-        # response = client.messages.create(
-        #     src=current_user.phone,
-        #     dst="<".join(destinationNumbers),
-        #     text=request.form['message'], )
-        # pdb.set_trace()
-
-        message_uuid = []
-        for i in destinationNumbers:
-            message_uuid.append(datetime.datetime.now())
-        # pdb.set_trace()
-        response = {'message_uuid': message_uuid}
-        # uncomment below when using api
-        # for i, uuid in enumerate(response.message_uuid, 0):
-        for i, uuid in enumerate(response['message_uuid'], 0):
-            newMessage = Message(
-                user_id=current_user.id, user_customer_id=int(request.form.getlist('customerSelect')[i]), message_uuid=uuid, message=request.form['message'], direction="outbound")
-            db_session.add(newMessage)
-            db_session.commit()
-        flash('The message was sucessfully created!')
-        return redirect(url_for('newMessage', customers=customers, current_user=current_user))
+        if request.form['direction'] == 'Outbound':
+            #----------update---------------
+            pass
+        else:
+            message_uuid = []
+            for i in destinationNumbers:
+                message_uuid.append(datetime.datetime.now())
+            # pdb.set_trace()
+            response = {'message_uuid': message_uuid}
+            # uncomment below when using api
+            # for i, uuid in enumerate(response.message_uuid, 0):
+            for i, uuid in enumerate(response['message_uuid'], 0):
+                newMessage = Message(
+                    user_id=current_user.id, user_customer_id=int(request.form.getlist('customerSelect')[i]), message_uuid=uuid, message=request.form['message'], direction="outbound")
+                db_session.add(newMessage)
+                db_session.commit()
+            flash('The message was sucessfully created!')
+            return redirect(url_for('newMessage', customers=customers, current_user=current_user))
     else:
         # pdb.set_trace()
         return render_template('newMessage.html', customers=customers, current_user=current_user)
