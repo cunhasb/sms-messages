@@ -258,9 +258,9 @@ def statusMessage():
 
 @app.route('/user/<int:user_id>message/inbound/new', methods=['POST'])
 def newInboundMessage():
-    ``` This page will be for all inbound messages, check if customer exists if so, check content of message if == "UNSUBSCRIBE", change user status.
+    """ This page will be for all inbound messages, check if customer exists if so, check content of message if == "UNSUBSCRIBE", change user status.
     If customer does not exist add to database.
-    ```
+    """
     user = db_session.query(User).filter_by(id=user_id)
     if user:
         customer = db_session.query(
