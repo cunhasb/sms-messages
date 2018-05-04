@@ -10,7 +10,7 @@ from werkzeug.contrib.fixers import ProxyFix
 from sqlalchemy.orm import sessionmaker
 from db.database import db_session, init_db
 from db.models import Base, User, User_Api_Client, User_Customer, Message, Role
-from helpers.helpers import secrets
+from helpers.helpers import setEnvironVariables
 # from flask.ext.sqlalchemy import SQLAlchemy
 # python -m pip install pycrypto otherwise would not work
 from Crypto.Cipher import AES
@@ -20,15 +20,16 @@ import pdb
 import plivo
 import os
 
+# setEnvironVariables()
 # Create app
-
 app = Flask(__name__)
+
+# Setup Flask-Security
 app.config['DEBUG'] = True
 # app.config['SECRET_KEY'] = secrets('secret')
 # app.config['SECURITY_PASSWORD_SALT'] = secrets('salt')
 app.config['SECRET_KEY'] = os.environ['SECRET']
 app.config['SECURITY_PASSWORD_SALT'] = os.environ['SALT']
-
 app.config['SECURITY_REGISTERABLE'] = True
 app.config['SECURITY_TRACKABLE'] = True
 app.config['SECURITY_SEND_REGISTER_EMAIL'] = False
@@ -38,7 +39,7 @@ app.config['SECURITY_SEND_REGISTER_EMAIL'] = False
 # app.config['MAIL_USERNAME'] = secrets('mailUsername')
 # app.config['MAIL_PASSWORD'] = secrets('mailPassword')
 
-# Setup Flask-Security
+
 heroku = Heroku(app)
 
 
@@ -248,16 +249,14 @@ def newMessage():
 
 @app.route('/message/status', methods=['POST'])
 def statusMessage():
-    print (list(request.form))
     message = db_session.query(Message).filter_by(
-        message_uuid=request.form["MessageUUID"]).one()
-
-    message(status=request.form["Status"],
-            units=request.form["Units"],
-            total_rate=request.form["TotalRate"],
-            total_amount=request.form["TotalAmount"])
+        message_uuid=request.form["MessageUUID"])
+    message.update({"status": request.form["Status"],
+                    "units": request.form["Units"],
+                    "total_rate": request.form["TotalRate"],
+                    "total_amount": request.form["TotalAmount"]})
     db_session.commit()
-    return jsonify(message.serialize)
+    return jsonify(message.one().serialize)
 
 
 @app.route('/message/inbound/new', methods=['POST'])
@@ -267,8 +266,7 @@ def newInboundMessage():
     """
     print ('requestform', request.form)
     # pdb.set_trace()
-    user = db_session.query(User).filter_by(
-        phone=request.form['To']).one()
+    user = db_session.query(User).filter_by(phone=request.form['To']).one()
 
     if user:
         customer = db_session.query(
@@ -292,7 +290,6 @@ def newInboundMessage():
         db_session.commit()
 
         return jsonify(newMessage.serialize)
-    return jsonify({"error": '400'})
 
 
 @app.route('/users/JSON/')

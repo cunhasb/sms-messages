@@ -2,7 +2,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy import create_engine
 # from flask.ext.sqlalchemy import SQLAlchemy
-from helpers.helpers import secretsD
+from helpers.helpers import setEnvironVariables
 import os
 import pdb
 
@@ -14,6 +14,8 @@ CREATE ROLE
 postgres=# GRANT ALL PRIVILEGES ON DATABASE sms TO SMS-ADMIN;
 GRANT'''
 
+# pdb.set_trace()
+setEnvironVariables()
 
 # engine = create_engine(connect(secrets('dbUser'), secrets(
 # 'dbPassword'), "localhost", 5432, "sms"))
