@@ -248,10 +248,11 @@ def newMessage():
 def statusMessage():
     message = db_session.query(Message).filter_by(
         message_uuid == request.form["message_uuid"]).one()
-    message = ('status'=request.form["status"],
-               'units'=request.form["units"],
-               'total_rate'=request.form["total_rate"],
-               'total_amount'=request.form["total_amount"])
+
+    message(status=request.form["status"],
+            units=request.form["units"],
+            total_rate=request.form["total_rate"],
+            total_amount=request.form["total_amount"])
     db_session.commit()
     return jsonify(message)
 
@@ -275,10 +276,10 @@ def newInboundMessage():
             db_session.commit()
 
         newMessage = Message(
-            user_id=user.id, user_customer_id=customer.id, message_uuid=request.form['message_uuid'], message=request.form['text'], direction="INBOUND", 'status'=request.form["status"],
-            'units'=request.form["units"],
-            'total_rate'=request.form["total_rate"],
-            'total_amount'=request.form["total_amount"])
+            user_id=user.id, user_customer_id=customer.id, message_uuid=request.form['message_uuid'], message=request.form['text'], direction="INBOUND", status=request.form["status"],
+            units=request.form["units"],
+            total_rate=request.form["total_rate"],
+            total_amount=request.form["total_amount"])
         db_session.add(newMessage)
         db_session.commit()
     return jsonify(customer, newMessage)
