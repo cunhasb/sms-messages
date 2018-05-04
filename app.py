@@ -266,7 +266,7 @@ def newInboundMessage(user_id):
     If customer does not exist add to database.
     """
     print (list(request.form))
-    pdb.set_trace()
+    # pdb.set_trace()
     user = db_session.query(User).filter_by(id=user_id)
     if user:
         customer = db_session.query(
