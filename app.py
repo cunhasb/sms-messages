@@ -268,7 +268,7 @@ def newInboundMessage(user_id):
     print ('requestform', request.form)
     # pdb.set_trace()
     user = db_session.query(User).filter_by(id=user_id).one()
-    print('user', user_id, user.name)
+    print('user', user_id, user.username)
     if user:
         customer = db_session.query(
             User_Customer).filter_by(phone=request.form['from']).one()
