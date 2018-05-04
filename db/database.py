@@ -14,8 +14,7 @@ CREATE ROLE
 postgres=# GRANT ALL PRIVILEGES ON DATABASE sms TO SMS-ADMIN;
 GRANT'''
 
-# pdb.set_trace()
-setEnvironVariables()
+# setEnvironVariables()
 
 # engine = create_engine(connect(secrets('dbUser'), secrets(
 # 'dbPassword'), "localhost", 5432, "sms"))
