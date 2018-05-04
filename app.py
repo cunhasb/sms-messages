@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_security import Security, login_required, SQLAlchemySessionUserDatastore, current_user
 from flask_security.forms import RegisterForm
-from flask.ext.heroku import Heroku
+from flask_heroku import Heroku
 from flask_mail import Mail
 from celery import Celery
 from wtforms import StringField
@@ -248,7 +248,8 @@ def newMessage():
 
 @app.route('/user/message/status/new', methods=['POST'])
 def statusMessage():
-    message = db_session.query(Message).filter_by(
+    print (list(request.form)
+    message=db_session.query(Message).filter_by(
         message_uuid == request.form["message_uuid"]).one()
 
     message(status=request.form["status"],
@@ -264,20 +265,22 @@ def newInboundMessage(user_id):
     """ This page will be for all inbound messages, check if customer exists if so, check content of message if == "UNSUBSCRIBE", change user status.
     If customer does not exist add to database.
     """
-    user = db_session.query(User).filter_by(id=user_id)
+    print (list(request.form))
+    pdb.set_trace()
+    user=db_session.query(User).filter_by(id=user_id)
     if user:
-        customer = db_session.query(
+        customer=db_session.query(
             User_Customer).filter_by(phone=request.form['from']).one()
         if customer:
             if request.form['text'] == "UNSUBSCRIBE":
-                customer.status = "UNSUBSCRIBED"
+                customer.status="UNSUBSCRIBED"
         else:
-            customer = User_Customer(
+            customer=User_Customer(
                 name='UNKNOWN', phone=request.form['from'], user_id=user.id, status="SUBSCRIBED")
             db_session.add(customer)
             db_session.commit()
 
-        newMessage = Message(
+        newMessage=Message(
             user_id=user.id, user_customer_id=customer.id, message_uuid=request.form['message_uuid'], message=request.form['text'], direction="INBOUND", status=request.form["status"],
             units=request.form["units"],
             total_rate=request.form["total_rate"],
@@ -290,7 +293,7 @@ def newInboundMessage(user_id):
 @app.route('/users/JSON/')
 # @login_required
 def usersJSON():
-    users = db_session.query(User).all()
+    users=db_session.query(User).all()
     return jsonify(Users=[i.serialize for i in users])
 
 
@@ -298,8 +301,8 @@ def usersJSON():
 @login_required
 def userCustomersJSON(user_id):
     # pdb.set_trace()
-    user = db_session.query(User).filter_by(id=user_id)
-    customers = db_session.query(
+    user=db_session.query(User).filter_by(id=user_id)
+    customers=db_session.query(
         User_Customer).filter_by(user_id=user_id).all()
     return jsonify(User=[i.serialize for i in user], User_Customer=[i.serialize for i in customers])
 
@@ -307,14 +310,14 @@ def userCustomersJSON(user_id):
 @app.route('/messages/JSON')
 # @login_required
 def messagesJSON():
-    messages = db_session.query(Message).all()
+    messages=db_session.query(Message).all()
     return jsonify(Message=[i.serialize for i in messages])
 
 
 @app.route('/user/api-clients/JSON')
 # @login_required
 def apiClientsJSON():
-    apiClients = db_session.query(User_Api_Client).all()
+    apiClients=db_session.query(User_Api_Client).all()
     return jsonify(User_Api_Client=[i.serialize for i in apiClients])
 
 
