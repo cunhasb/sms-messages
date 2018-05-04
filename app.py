@@ -285,13 +285,12 @@ def newInboundMessage(user_id):
         print('before newMessage', user.id, customer.id)
         print ('Message', Message)
         print (request.form['message_uuid'], request.form['text'])
-        # newMessage = Message(
-        #     user_id=user.id, user_customer_id=customer.id, message_uuid=request.form['message_uuid'], message=request.form['text'], direction="INBOUND", status=request.form["status"],
-        #     units=request.form["units"],
-        #     total_rate=request.form["total_rate"],
-        #     total_amount=request.form["total_amount"])
         newMessage = Message(
-            user_id=1, user_customer_id=1, message_uuid="4848484845858585", message="teste")
+            user_id=user.id, user_customer_id=customer.id, message_uuid=request.form['message_uuid'], message=request.form['text'], direction="INBOUND", status=request.form["status"],
+            units=request.form["units"],
+            total_rate=request.form["total_rate"],
+            total_amount=request.form["total_amount"])
+
         print('newMessage', newMessage)
         db_session.add(newMessage)
         db_session.commit()
