@@ -214,7 +214,7 @@ def newMessage():
             src=current_user.phone,
             dst="<".join(destinationNumbers),
             text=request.form['message'],
-            url="https://sms-messeger.herokuapp.com/user/%s/message/inbound/new" % current_user.id)
+            url="https://sms-messeger.herokuapp.com/message/status")
 
         # pdb.set_trace()
 
@@ -246,7 +246,7 @@ def newMessage():
 """
 
 
-@app.route('/user/message/status/new', methods=['POST'])
+@app.route('/message/status', methods=['POST'])
 def statusMessage():
     print (list(request.form))
     message = db_session.query(Message).filter_by(
@@ -260,14 +260,14 @@ def statusMessage():
     return jsonify(message.serialize)
 
 
-@app.route('/user/<int:user_id>/message/inbound/new', methods=['POST'])
-def newInboundMessage(user_id):
+@app.route('/message/inbound/new', methods=['POST'])
+def newInboundMessage():
     """ This page will be for all inbound messages, check if customer exists if so, check content of message if == "UNSUBSCRIBE", change user status.
     If customer does not exist add to database.
     """
     print ('requestform', request.form)
     # pdb.set_trace()
-    user = db_session.query(User).filter_by(id=user_id).one()
+    user = db_session.query(User).filter_by(id=request.form['To']).one()
     if user:
         customer = db_session.query(
             User_Customer).filter_by(phone=request.form['From']).first()
