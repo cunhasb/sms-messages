@@ -265,10 +265,10 @@ def newInboundMessage(user_id):
     """ This page will be for all inbound messages, check if customer exists if so, check content of message if == "UNSUBSCRIBE", change user status.
     If customer does not exist add to database.
     """
-    print ('requestform', list(request.form))
+    print ('requestform', request.form, list(request.form))
     # pdb.set_trace()
     user = db_session.query(User).filter_by(id=int(user_id))
-    print('user', list(user))
+    print('user', user.id, user.name)
     if user:
         customer = db_session.query(
             User_Customer).filter_by(phone=request.form['from']).one()
@@ -282,6 +282,7 @@ def newInboundMessage(user_id):
             db_session.add(customer)
             db_session.commit()
             print('inside else customer', customer.phone)
+        print('before newMessage', user.id, customer.id)
         newMessage = Message(
             user_id=user.id, user_customer_id=customer.id, message_uuid=request.form['message_uuid'], message=request.form['text'], direction="INBOUND", status=request.form["status"],
             units=request.form["units"],
