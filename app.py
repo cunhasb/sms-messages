@@ -284,18 +284,18 @@ def newInboundMessage(user_id):
             print('inside else customer', customer.phone)
         print('before newMessage', user.id, customer.id)
         print ('Message', Message)
-        # newMessage = Message(
-        #     user_id=user.id, user_customer_id=customer.id, message_uuid=request.form['message_uuid'], message=request.form['text'], direction="INBOUND", status=request.form["status"],
-        #     units=request.form["units"],
-        #     total_rate=request.form["total_rate"],
-        #     total_amount=request.form["total_amount"])
+        newMessage = Message(
+            user_id=user.id, user_customer_id=customer.id, message_uuid=request.form['message_uuid'], message=request.form['text'], direction="INBOUND", status=request.form["status"],
+            units=request.form["units"],
+            total_rate=request.form["total_rate"],
+            total_amount=request.form["total_amount"], error_code=request.form["error_code"])
         print (user.id, customer.id,
-               request.form['message_uuid'], request.form['text'])
+               request.form['message_uuid'], request.form['text'], request.form['status'])
         newMessage = Message(
             user_id=user.id, user_customer_id=customer.id, message_uuid=request.form['message_uuid'], message=request.form['text'], direction="INBOUND")
         print('newMessage', newMessage)
-        db_session.add(newMessage)
-        db_session.commit()
+        # db_session.add(newMessage)
+        # db_session.commit()
 
     return jsonify(newMessage.serialize)
 
