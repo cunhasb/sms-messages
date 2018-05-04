@@ -272,7 +272,7 @@ def newInboundMessage(user_id):
     if user:
         customer = db_session.query(
             User_Customer).filter_by(phone=request.form['from']).one()
-        print ('customer', list(customer))
+        print ('customer', customer.phone)
         if customer:
             if request.form['text'] == "UNSUBSCRIBE":
                 customer.status = "UNSUBSCRIBED"
@@ -281,13 +281,13 @@ def newInboundMessage(user_id):
                 name='UNKNOWN', phone=request.form['from'], user_id=user.id, status="SUBSCRIBED")
             db_session.add(customer)
             db_session.commit()
-            print('inside else customer', list(customer))
+            print('inside else customer', customer.phone)
         newMessage = Message(
             user_id=user.id, user_customer_id=customer.id, message_uuid=request.form['message_uuid'], message=request.form['text'], direction="INBOUND", status=request.form["status"],
             units=request.form["units"],
             total_rate=request.form["total_rate"],
             total_amount=request.form["total_amount"])
-        print('newMessage', list(newMessage))
+        print('newMessage', newMessage)
         db_session.add(newMessage)
         db_session.commit()
 
