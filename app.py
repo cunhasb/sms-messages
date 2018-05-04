@@ -268,7 +268,7 @@ def newInboundMessage(user_id):
     print ('requestform', request.form)
     print ('user_id', user_id, int(user_id))
     # pdb.set_trace()
-    user = db_session.query(User).filter_by(id=1)
+    user = db_session.query(User).filter_by(id=user_id).one()
     print('user', user_id, user, list(user))
     if user:
         customer = db_session.query(
@@ -307,7 +307,7 @@ def usersJSON():
 @login_required
 def userCustomersJSON(user_id):
     # pdb.set_trace()
-    user = db_session.query(User).filter_by(id=user_id)
+    user = db_session.query(User).filter_by(id=user_id).one()
     customers = db_session.query(
         User_Customer).filter_by(user_id=user_id).all()
     return jsonify(User=[i.serialize for i in user], User_Customer=[i.serialize for i in customers])
