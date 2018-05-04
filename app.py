@@ -291,7 +291,7 @@ def newInboundMessage(user_id):
         #     total_rate=request.form["total_rate"],
         #     total_amount=request.form["total_amount"])
         newMessage = Message(
-            user_id=user.id, user_customer_id=customer.id, message_uuid=request.form['message_uuid'], message=request.form['text'], direction="INBOUND", status=request.form["status"])
+            user_id=1, user_customer_id=1, message_uuid="4848484845858585", message="teste")
         print('newMessage', newMessage)
         db_session.add(newMessage)
         db_session.commit()
