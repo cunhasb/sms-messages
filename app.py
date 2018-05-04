@@ -281,7 +281,7 @@ def newInboundMessage():
             db_session.commit()
 
         newMessage = Message(
-            user_id=user.id, user_customer_id=customer.id, message_uuid=request.form['MessageUUID'], message=request.form['Text'], direction="Inbound", status="received",
+            user_id=user.id, user_customer_id=customer.id, message_uuid=request.form['MessageUUID'], message=request.form['Text'], direction="INBOUND", status="RECEIVED",
             units=request.form["Units"],
             total_rate=request.form["TotalRate"],
             total_amount=request.form["TotalAmount"], error_code="200")
