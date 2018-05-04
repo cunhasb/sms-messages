@@ -184,7 +184,7 @@ def newCustomer():
     if request.method == 'POST':
 
         newCustomer = User_Customer(
-            name=request.form['name'], email=request.form['email'], phone=request.form['phone'], user_id=current_user.id)
+            name=request.form['name'], email=request.form['email'], phone=request.form['phone'], user_id=current_user.id, status="SUBSCRIBED")
         db_session.add(newCustomer)
         db_session.commit()
         flash('%s was sucessfully added!' % request.form['name'])
@@ -235,37 +235,6 @@ def newMessage():
         return render_template('newMessage.html', customers=customers, current_user=current_user)
 
 
-@app.route('/user/message/inbound/new', methods=['GET', 'POST'])
-@login_required
-def newInboundMessage():
-    # This page will be for creating a new Customer
-    customers = db_session.query(
-        User_Customer).filter_by(user_id=current_user.id).all()
-
-    if request.method == 'POST':
-        if request.form['direction'] == 'Outbound':
-            #----------update---------------
-            pass
-        else:
-            message_uuid = []
-            for i in request.form['messageUUID']:
-                message_uuid.append(datetime.datetime.now())
-            # pdb.set_trace()
-            response = {'message_uuid': message_uuid}
-            # uncomment below when using api
-            # for i, uuid in enumerate(response.message_uuid, 0):
-            for i, uuid in enumerate(response['message_uuid'], 0):
-                newMessage = Message(
-                    user_id=current_user.id, user_customer_id=int(request.form.getlist('customerSelect')[i]), message_uuid=uuid, message=request.form['message'], direction="outbound")
-                db_session.add(newMessage)
-                db_session.commit()
-            flash('The message was sucessfully created!')
-            return redirect(url_for('newInboundMessage', customers=customers, current_user=current_user))
-    else:
-        # pdb.set_trace()
-        return render_template('newMessage.html', customers=customers, current_user=current_user)
-
-
 """--------------------------------------------------------------------------
 
 
@@ -273,6 +242,46 @@ def newInboundMessage():
 
  ----------------------------------------------------------------------------
 """
+
+
+@app.route('/user/message/status/new', methods=['POST'])
+def statusMessage():
+    message = db_session.query(Message).filter_by(
+        message_uuid == request.form["message_uuid"]).one()
+    message('status'=request.form["status"],
+            'units'=request.form["units"],
+            'total_rate'=request.form["total_rate"],
+            'total_amount'=request.form["total_amount"])
+    db_session.commit()
+    return jsonify(message)
+
+
+@app.route('/user/<int:user_id>message/inbound/new', methods=['POST'])
+def newInboundMessage():
+    ``` This page will be for all inbound messages, check if customer exists if so, check content of message if == "UNSUBSCRIBE", change user status.
+    If customer does not exist add to database.
+    ```
+    user = db_session.query(User).filter_by(id=user_id)
+    if user:
+        customer = db_session.query(
+            User_Customer).filter_by(phone=request.form['from']).one()
+        if customer:
+            if request.form['text'] == UNSUBSCRIBE":
+                customer.status = "UNSUBSCRIBED"
+        else:
+            customer = User_Customer(
+                name='UNKNOWN', phone=request.form['from'], user_id=user.id, status="SUBSCRIBED")
+            db_session.add(customer)
+            db_session.commit()
+
+        newMessage = Message(
+            user_id=user.id, user_customer_id=customer.id, message_uuid=request.form['message_uuid'], message=request.form['text'], direction="INBOUND", 'status'=request.form["status"],
+            'units'=request.form["units"],
+            'total_rate'=request.form["total_rate"],
+            'total_amount'=request.form["total_amount"])
+        db_session.add(newMessage)
+        db_session.commit()
+    return jsonify(customer, newMessage)
 
 
 @app.route('/users/JSON/')

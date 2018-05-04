@@ -82,6 +82,7 @@ class User_Customer(Base):
     name = Column(String(250), nullable=False)
     phone = Column(String(14), nullable=False, unique=True)
     email = Column(String(255), unique=True)
+    status = Column(String(30))
     user_id = Column(Integer, ForeignKey('user.id', ondelete='CASCADE'))
     user = relationship(User, single_parent=True)
 
@@ -94,6 +95,7 @@ class User_Customer(Base):
             'phone': self.phone,
             'email': self.email,
             'user_id': self.user_id,
+            'status': self.status
 
         }
 
@@ -105,6 +107,12 @@ class Message(Base):
     message_uuid = Column(String(255), unique=True)
     message = Column(String())
     direction = Column(String(10))
+    status = Column(String(15))
+    units = Column(Integer())
+    total_rate = Column(String())
+    total_amount = Column(String())
+    error_code = Column(String(30))
+
     user_id = Column(Integer, ForeignKey('user.id', ondelete='CASCADE'))
     user_customer_id = Column(
         Integer, ForeignKey('user_customer.id', ondelete='CASCADE'))
@@ -121,6 +129,11 @@ class Message(Base):
             'user_id': self.user_id,
             'customer_id': self.user_customer_id,
             'message': self.message,
-            'direction': self.direction
+            'direction': self.direction,
+            'status': self.status,
+            'units': self.units,
+            'total_rate': self.total_rate,
+            'total_amount': self.total_amount,
+            'error_code': self.error_code
 
         }
