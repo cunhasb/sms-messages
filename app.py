@@ -40,7 +40,7 @@ app.config['SECURITY_SEND_REGISTER_EMAIL'] = False
 # app.config['MAIL_PASSWORD'] = secrets('mailPassword')
 
 
-heroku = Heroku(app)
+# heroku = Heroku(app)
 
 
 def aes_encrypt(data):
@@ -111,7 +111,7 @@ def create_user():
 # @login_required
 def home():
     # this is the landing page
-    return render_template('home.html', current_user=current_user)
+    return render_template('/home/home.html')
 
 
 """--------------------------------------------------------------------------
@@ -128,7 +128,7 @@ def home():
 def ApiClients():
     clients = db_session.query(User_Api_Client).filter_by(
         user_id=current_user.id).all()
-    return render_template('apiClients.html', clients=clients)
+    return render_template('/apiClients/apiClients.html', clients=clients)
 
 
 @app.route('/user/customers/')
@@ -136,7 +136,7 @@ def ApiClients():
 def Customers():
     customers = db_session.query(User_Customer).filter_by(
         user_id=current_user.id).all()
-    return render_template('customers.html', customers=customers)
+    return render_template('/customers/customers.html', customers=customers)
 
 
 @app.route('/user/messages/')
@@ -145,7 +145,7 @@ def SmsMessages():
     sms_messages = db_session.query(Message).filter_by(
         user_id=current_user.id).order_by(Message.id.desc()).all()
     # pdb.set_trace()
-    return render_template('messages.html', sms_messages=sms_messages)
+    return render_template('/messages/messages.html', sms_messages=sms_messages)
 
 
 """--------------------------------------------------------------------------
@@ -175,7 +175,7 @@ def apiClient():
         return redirect(url_for('apiClient'))
     else:
         # pdb.set_trace()
-        return render_template('apiClient.html')
+        return render_template('/apiClients/apiClient.html')
 
 
 @app.route('/user/customer/new', methods=['GET', 'POST'])
@@ -189,10 +189,10 @@ def newCustomer():
         db_session.add(newCustomer)
         db_session.commit()
         flash('%s was sucessfully added!' % request.form['name'])
-        return redirect(url_for('newCustomer', current_user=current_user))
+        return redirect(url_for('newCustomer'))
     else:
         # pdb.set_trace()
-        return render_template('newCustomer.html', current_user=current_user)
+        return render_template('/customers/newCustomer.html')
 
 
 @app.route('/user/message/new', methods=['GET', 'POST'])
@@ -209,33 +209,35 @@ def newMessage():
             id=int(x)).one().phone, request.form.getlist('customerSelect')))
 
         # Commented out to not make unnecessary api calls
-        client = plivo.RestClient(
-            auth_id=aes_decrypt(apiClient.api_id), auth_token=aes_decrypt(apiClient.auth_id))
-        response = client.messages.create(
-            src=current_user.phone,
-            dst="<".join(destinationNumbers),
-            text=request.form['message'],
-            url="https://sms-messeger.herokuapp.com/message/status")
+        # client = plivo.RestClient(
+        #     auth_id=aes_decrypt(apiClient.api_id), auth_token=aes_decrypt(apiClient.auth_id))
+        # response = client.messages.create(
+        #     src=current_user.phone,
+        #     dst="<".join(destinationNumbers),
+        #     text=request.form['message'],
+        #     url="https://sms-messeger.herokuapp.com/message/status")
 
         # pdb.set_trace()
 
-        # message_uuid = []
-        # for i in destinationNumbers:
-        #     message_uuid.append(datetime.datetime.now())
+        message_uuid = []
+        for i in destinationNumbers:
+            message_uuid.append(datetime.datetime.now())
         # pdb.set_trace()
-        # response = {'message_uuid': message_uuid}
+        response = {'message_uuid': message_uuid}
         # uncomment below when using api
-        for i, uuid in enumerate(response.message_uuid, 0):
-            # for i, uuid in enumerate(response['message_uuid'], 0):
+        # for i, uuid in enumerate(response.message_uuid, 0):
+
+        # uncomment below when not using api
+        for i, uuid in enumerate(response['message_uuid'], 0):
             newMessage = Message(
                 user_id=current_user.id, user_customer_id=int(request.form.getlist('customerSelect')[i]), message_uuid=uuid, message=request.form['message'], direction="outbound")
             db_session.add(newMessage)
             db_session.commit()
         flash('The message was sucessfully created!')
-        return redirect(url_for('newMessage', customers=customers, current_user=current_user))
+        return redirect(url_for('newMessage', customers=customers))
     else:
         # pdb.set_trace()
-        return render_template('newMessage.html', customers=customers, current_user=current_user)
+        return render_template('/messages/newMessage.html', customers=customers)
 
 
 """--------------------------------------------------------------------------
@@ -324,5 +326,5 @@ def apiClientsJSON():
 
 
 if __name__ == '__main__':
-    # app.run("", port=3000)
-    app.run()
+    app.run("", port=3000)
+    # app.run()
