@@ -284,7 +284,7 @@ def newInboundMessage(user_id):
             print('inside else customer', customer.phone)
         print('before newMessage', user.id, customer.id)
         print ('Message', list(Message)
-        print (request.form['message_uuid'], message=request.form['text'])
+        print (request.form['message_uuid'], request.form['text'])
         # newMessage=Message(
             # user_id=user.id, user_customer_id=customer.id, message_uuid=request.form['message_uuid'], message=request.form['text'], direction="INBOUND", status=request.form["status"],
             # units=request.form["units"],
