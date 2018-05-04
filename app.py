@@ -248,10 +248,10 @@ def newMessage():
 def statusMessage():
     message = db_session.query(Message).filter_by(
         message_uuid == request.form["message_uuid"]).one()
-    message('status'=request.form["status"],
-            'units'=request.form["units"],
-            'total_rate'=request.form["total_rate"],
-            'total_amount'=request.form["total_amount"])
+    message = ('status'=request.form["status"],
+               'units'=request.form["units"],
+               'total_rate'=request.form["total_rate"],
+               'total_amount'=request.form["total_amount"])
     db_session.commit()
     return jsonify(message)
 
