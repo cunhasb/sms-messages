@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_security import Security, login_required, SQLAlchemySessionUserDatastore, current_user
 from flask_security.forms import RegisterForm
+from flask.ext.heroku import Heroku
 from flask_mail import Mail
 from celery import Celery
 from wtforms import StringField
@@ -9,6 +10,8 @@ from werkzeug.contrib.fixers import ProxyFix
 from sqlalchemy.orm import sessionmaker
 from db.database import db_session, init_db
 from db.models import Base, User, User_Api_Client, User_Customer, Message, Role
+from helpers.helpers import secrets
+# from flask.ext.sqlalchemy import SQLAlchemy
 # python -m pip install pycrypto otherwise would not work
 from Crypto.Cipher import AES
 import binascii
@@ -20,28 +23,30 @@ import plivo
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
-app.config['SECRET_KEY'] = 'super_secret_key'
-app.config['SECURITY_PASSWORD_SALT'] = 'super_secret_password_salt'
+app.config['SECRET_KEY'] = secrets('secret')
+app.config['SECURITY_PASSWORD_SALT'] = secrets('salt')
 app.config['SECURITY_REGISTERABLE'] = True
 app.config['SECURITY_TRACKABLE'] = True
 app.config['SECURITY_SEND_REGISTER_EMAIL'] = False
-# app.config['MAIL_SERVER'] = 'smtp.gmail.com.'
-# app.config['MAIL_PORT'] = 465
+# app.config['MAIL_SERVER'] = secrets('mailServer')
+# app.config['MAIL_PORT'] = secrets(mailPort)
 # app.config['MAIL_USE_SSL'] = True
-# app.config['MAIL_USERNAME'] = 'your@mail.com'
-# app.config['MAIL_PASSWORD'] = 'password'
+# app.config['MAIL_USERNAME'] = secrets('mailUsername')
+# app.config['MAIL_PASSWORD'] = secrets('mailPassword')
 
 # Setup Flask-Security
+heroku = Heroku(app)
+db = SQLAlchemy(app)
 
 
 def aes_encrypt(data):
-    cipher = AES.new('super_secret_key')
+    cipher = AES.new(secrets('salt'))
     data = data + (" " * (16 - (len(data) % 16)))
     return binascii.hexlify(cipher.encrypt(data)).decode('ascii')
 
 
 def aes_decrypt(data):
-    cipher = AES.new('super_secret_key')
+    cipher = AES.new(secrets('salt'))
     return cipher.decrypt(binascii.unhexlify(data)).rstrip().decode('ascii')
 
 
@@ -197,22 +202,22 @@ def newMessage():
             id=int(x)).one().phone, request.form.getlist('customerSelect')))
 
         # Commented out to not make unnecessary api calls
-        # client = plivo.RestClient(
-        #     auth_id=aes_decrypt(apiClient.api_id), auth_token=aes_decrypt(apiClient.auth_id))
-        # response = client.messages.create(
-        #     src=current_user.phone,
-        #     dst="<".join(destinationNumbers),
-        #     text=request.form['message'], )
+        client = plivo.RestClient(
+            auth_id=aes_decrypt(apiClient.api_id), auth_token=aes_decrypt(apiClient.auth_id))
+        response = client.messages.create(
+            src=current_user.phone,
+            dst="<".join(destinationNumbers),
+            text=request.form['message'], )
         # pdb.set_trace()
 
-        message_uuid = []
-        for i in destinationNumbers:
-            message_uuid.append(datetime.datetime.now())
+        # message_uuid = []
+        # for i in destinationNumbers:
+        #     message_uuid.append(datetime.datetime.now())
         # pdb.set_trace()
-        response = {'message_uuid': message_uuid}
+        # response = {'message_uuid': message_uuid}
         # uncomment below when using api
-        # for i, uuid in enumerate(response.message_uuid, 0):
-        for i, uuid in enumerate(response['message_uuid'], 0):
+        for i, uuid in enumerate(response.message_uuid, 0):
+            # for i, uuid in enumerate(response['message_uuid'], 0):
             newMessage = Message(
                 user_id=current_user.id, user_customer_id=int(request.form.getlist('customerSelect')[i]), message_uuid=uuid, message=request.form['message'], direction="outbound")
             db_session.add(newMessage)
@@ -226,7 +231,7 @@ def newMessage():
 
 @app.route('/user/message/inbound/new', methods=['GET', 'POST'])
 @login_required
-def newMessage():
+def newInboundMessage():
     # This page will be for creating a new Customer
     customers = db_session.query(
         User_Customer).filter_by(user_id=current_user.id).all()
@@ -237,7 +242,7 @@ def newMessage():
             pass
         else:
             message_uuid = []
-            for i in destinationNumbers:
+            for i in request.form['messageUUID']:
                 message_uuid.append(datetime.datetime.now())
             # pdb.set_trace()
             response = {'message_uuid': message_uuid}
@@ -249,7 +254,7 @@ def newMessage():
                 db_session.add(newMessage)
                 db_session.commit()
             flash('The message was sucessfully created!')
-            return redirect(url_for('newMessage', customers=customers, current_user=current_user))
+            return redirect(url_for('newInboundMessage', customers=customers, current_user=current_user))
     else:
         # pdb.set_trace()
         return render_template('newMessage.html', customers=customers, current_user=current_user)

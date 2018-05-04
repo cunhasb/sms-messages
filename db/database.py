@@ -1,19 +1,21 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy import create_engine
+# from flask.ext.sqlalchemy import SQLAlchemy
+from helpers.helpers import secrets
 import pdb
 
 '''psql
 postgres=# CREATE DATABASE sms;
 CREATE DATABASE
-postgres=# CREATE USER sms-admin WITH PASSWORD 'sms-admin-Password';
+postgres=# CREATE USER sms-admin WITH PASSWORD 'password';
 CREATE ROLE
 postgres=# GRANT ALL PRIVILEGES ON DATABASE sms TO SMS-ADMIN;
 GRANT'''
 
 
-engine = create_engine(
-    'postgresql://sms-admin:sms-admin-Password@localhost:5432/sms')
+# engine = create_engine(connect(secrets('dbUser'), secrets(
+# 'dbPassword'), "localhost", 5432, "sms"))
 db_session = scoped_session(sessionmaker(autocommit=False, bind=engine))
 Base = declarative_base()
 Base.query = db_session.query_property()
