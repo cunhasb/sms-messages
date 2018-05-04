@@ -257,7 +257,7 @@ def statusMessage():
             total_rate=request.form["total_rate"],
             total_amount=request.form["total_amount"])
     db_session.commit()
-    return jsonify(message)
+    return jsonify(message.serialize)
 
 
 @app.route('/user/<int:user_id>/message/inbound/new', methods=['POST'])
@@ -268,11 +268,9 @@ def newInboundMessage(user_id):
     print ('requestform', request.form)
     # pdb.set_trace()
     user = db_session.query(User).filter_by(id=user_id).one()
-    print('user', user_id, user.username)
     if user:
         customer = db_session.query(
             User_Customer).filter_by(phone=request.form['from']).first()
-        print ('customer', customer.phone)
         if customer:
             if request.form['text'] == "UNSUBSCRIBE":
                 customer.status = "UNSUBSCRIBED"
@@ -281,14 +279,11 @@ def newInboundMessage(user_id):
                 name='UNKNOWN', phone=request.form['from'], user_id=user.id, status="SUBSCRIBED")
             db_session.add(customer)
             db_session.commit()
-            print('inside else customer', customer.phone)
-        print('before newMessage', user.id, customer.id)
-        print ('Message', Message)
         newMessage = Message(
-            user_id=user.id, user_customer_id=customer.id, message_uuid=request.form['message_uuid'], message=request.form['text'], direction="INBOUND", status=request.form["status"],
-            units=request.form["units"],
-            total_rate=request.form["total_rate"],
-            total_amount=request.form["total_amount"], error_code=request.form["error_code"])
+            user_id=user.id, user_customer_id=customer.id, message_uuid=request.form['MessageUUID'], message=request.form['Text'], direction="Inbound", status="received",
+            units=request.form["Units"],
+            total_rate=request.form["TotalRate"],
+            total_amount=request.form["TotalAmount"], error_code="200")
 
         db_session.add(newMessage)
         db_session.commit()
