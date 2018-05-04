@@ -283,14 +283,14 @@ def newInboundMessage(user_id):
             db_session.commit()
             print('inside else customer', customer.phone)
         print('before newMessage', user.id, customer.id)
-        print ('Message', list(Message)
+        print ('Message', list(Message))
         print (request.form['message_uuid'], request.form['text'])
         # newMessage=Message(
-            # user_id=user.id, user_customer_id=customer.id, message_uuid=request.form['message_uuid'], message=request.form['text'], direction="INBOUND", status=request.form["status"],
-            # units=request.form["units"],
-            # total_rate=request.form["total_rate"],
-            # total_amount=request.form["total_amount"])
-            newMessage=Message(
+        # user_id=user.id, user_customer_id=customer.id, message_uuid=request.form['message_uuid'], message=request.form['text'], direction="INBOUND", status=request.form["status"],
+        # units=request.form["units"],
+        # total_rate=request.form["total_rate"],
+        # total_amount=request.form["total_amount"])
+            newMessage = Message(
                 user_id=user.id, user_customer_id=customer.id, message_uuid=request.form['message_uuid'], message=request.form['text'], direction="INBOUND")
         print('newMessage', newMessage)
         db_session.add(newMessage)
@@ -302,7 +302,7 @@ def newInboundMessage(user_id):
 @app.route('/users/JSON/')
 # @login_required
 def usersJSON():
-    users=db_session.query(User).all()
+    users = db_session.query(User).all()
     return jsonify(Users=[i.serialize for i in users])
 
 
@@ -310,8 +310,8 @@ def usersJSON():
 @login_required
 def userCustomersJSON(user_id):
     # pdb.set_trace()
-    user=db_session.query(User).filter_by(id=user_id).one()
-    customers=db_session.query(
+    user = db_session.query(User).filter_by(id=user_id).one()
+    customers = db_session.query(
         User_Customer).filter_by(user_id=user_id).all()
     return jsonify(User=[i.serialize for i in user], User_Customer=[i.serialize for i in customers])
 
@@ -319,14 +319,14 @@ def userCustomersJSON(user_id):
 @app.route('/messages/JSON')
 # @login_required
 def messagesJSON():
-    messages=db_session.query(Message).all()
+    messages = db_session.query(Message).all()
     return jsonify(Message=[i.serialize for i in messages])
 
 
 @app.route('/user/api-clients/JSON')
 # @login_required
 def apiClientsJSON():
-    apiClients=db_session.query(User_Api_Client).all()
+    apiClients = db_session.query(User_Api_Client).all()
     return jsonify(User_Api_Client=[i.serialize for i in apiClients])
 
 
