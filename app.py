@@ -271,7 +271,7 @@ def newInboundMessage(user_id):
     print('user', user_id, user.username)
     if user:
         customer = db_session.query(
-            User_Customer).filter_by(phone=request.form['from']).one()
+            User_Customer).filter_by(phone=request.form['from']).first()
         print ('customer', customer.phone)
         if customer:
             if request.form['text'] == "UNSUBSCRIBE":
@@ -285,12 +285,13 @@ def newInboundMessage(user_id):
         print('before newMessage', user.id, customer.id)
         print ('Message', Message)
         print (request.form['message_uuid'], request.form['text'])
+        # newMessage = Message(
+        #     user_id=user.id, user_customer_id=customer.id, message_uuid=request.form['message_uuid'], message=request.form['text'], direction="INBOUND", status=request.form["status"],
+        #     units=request.form["units"],
+        #     total_rate=request.form["total_rate"],
+        #     total_amount=request.form["total_amount"])
         newMessage = Message(
-            user_id=user.id, user_customer_id=customer.id, message_uuid=request.form['message_uuid'], message=request.form['text'], direction="INBOUND", status=request.form["status"],
-            units=request.form["units"],
-            total_rate=request.form["total_rate"],
-            total_amount=request.form["total_amount"])
-
+            user_id=user.id, user_customer_id=customer.id, message_uuid=request.form['message_uuid'], message=request.form['text'], direction="INBOUND", status=request.form["status"])
         print('newMessage', newMessage)
         db_session.add(newMessage)
         db_session.commit()
