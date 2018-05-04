@@ -270,15 +270,16 @@ def newInboundMessage(user_id):
     user = db_session.query(User).filter_by(id=user_id).one()
     if user:
         customer = db_session.query(
-            User_Customer).filter_by(phone=request.form['from']).first()
+            User_Customer).filter_by(phone=request.form['From']).first()
         if customer:
-            if request.form['text'] == "UNSUBSCRIBE":
+            if request.form['Text'] == "UNSUBSCRIBE":
                 customer.status = "UNSUBSCRIBED"
         else:
             customer = User_Customer(
-                name='UNKNOWN', phone=request.form['from'], user_id=user.id, status="SUBSCRIBED")
+                name='UNKNOWN', phone=request.form['From'], user_id=user.id, status="SUBSCRIBED")
             db_session.add(customer)
             db_session.commit()
+
         newMessage = Message(
             user_id=user.id, user_customer_id=customer.id, message_uuid=request.form['MessageUUID'], message=request.form['Text'], direction="Inbound", status="received",
             units=request.form["Units"],
