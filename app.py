@@ -18,13 +18,17 @@ import binascii
 import datetime
 import pdb
 import plivo
+import os
 
 # Create app
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
-app.config['SECRET_KEY'] = secrets('secret')
-app.config['SECURITY_PASSWORD_SALT'] = secrets('salt')
+# app.config['SECRET_KEY'] = secrets('secret')
+# app.config['SECURITY_PASSWORD_SALT'] = secrets('salt')
+app.config['SECRET_KEY'] = os.environ['SECRET']
+app.config['SECURITY_PASSWORD_SALT'] = os.environ['SALT']
+
 app.config['SECURITY_REGISTERABLE'] = True
 app.config['SECURITY_TRACKABLE'] = True
 app.config['SECURITY_SEND_REGISTER_EMAIL'] = False
@@ -36,17 +40,19 @@ app.config['SECURITY_SEND_REGISTER_EMAIL'] = False
 
 # Setup Flask-Security
 heroku = Heroku(app)
-db = SQLAlchemy(app)
 
 
 def aes_encrypt(data):
-    cipher = AES.new(secrets('salt'))
+    # cipher = AES.new(secrets('salt'))
+    cipher = AES.new(os.environ['SALT'])
+
     data = data + (" " * (16 - (len(data) % 16)))
     return binascii.hexlify(cipher.encrypt(data)).decode('ascii')
 
 
 def aes_decrypt(data):
-    cipher = AES.new(secrets('salt'))
+    # cipher = AES.new(secrets('salt'))
+    cipher = AES.new(os.environ['SALT'])
     return cipher.decrypt(binascii.unhexlify(data)).rstrip().decode('ascii')
 
 
@@ -301,4 +307,5 @@ def apiClientsJSON():
 
 
 if __name__ == '__main__':
-    app.run("", port=3000)
+    # app.run("", port=3000)
+    app.run()
