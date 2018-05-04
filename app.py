@@ -266,7 +266,7 @@ def newInboundMessage():
         customer = db_session.query(
             User_Customer).filter_by(phone=request.form['from']).one()
         if customer:
-            if request.form['text'] == UNSUBSCRIBE":
+            if request.form['text'] == "UNSUBSCRIBE":
                 customer.status = "UNSUBSCRIBED"
         else:
             customer = User_Customer(
