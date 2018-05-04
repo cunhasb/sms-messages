@@ -296,7 +296,7 @@ def newInboundMessage(user_id):
         db_session.add(newMessage)
         db_session.commit()
 
-    return jsonify(newMessage)
+    return jsonify(newMessage.serialize)
 
 
 @app.route('/users/JSON/')
