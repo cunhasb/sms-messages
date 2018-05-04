@@ -267,10 +267,13 @@ def newInboundMessage():
     """
     print ('requestform', request.form)
     # pdb.set_trace()
-    user = db_session.query(User).filter_by(phone=request.form['To']).first()
+    user = db_session.query(User).filter_by(phone=request.form['To'])
+    print ('user', user)
+    print ('user', request.from['To'], user.phone)
+
     if user:
         customer = db_session.query(
-            User_Customer).filter_by(phone=request.form['From']).first()
+            User_Customer).filter_by(phone == request.form['From']).one()
         if customer:
             if request.form['Text'] == "UNSUBSCRIBE":
                 customer.status = "UNSUBSCRIBED"
@@ -289,7 +292,8 @@ def newInboundMessage():
         db_session.add(newMessage)
         db_session.commit()
 
-    return jsonify(newMessage.serialize)
+        return jsonify(newMessage.serialize)
+    return jsonify({"error": '400'})
 
 
 @app.route('/users/JSON/')
@@ -303,7 +307,7 @@ def usersJSON():
 @login_required
 def userCustomersJSON(user_id):
     # pdb.set_trace()
-    user = db_session.query(User).filter_by(id=user_id).one()
+    user = db_session.query(User).filter_by(id == user_id).one()
     customers = db_session.query(
         User_Customer).filter_by(user_id=user_id).all()
     return jsonify(User=[i.serialize for i in user], User_Customer=[i.serialize for i in customers])
