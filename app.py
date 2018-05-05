@@ -39,7 +39,7 @@ app.config['SECURITY_SEND_REGISTER_EMAIL'] = False
 # app.config['MAIL_PASSWORD'] = secrets('mailPassword')
 
 
-heroku = Heroku(app)
+# heroku = Heroku(app)
 
 
 def aes_encrypt(data):
@@ -169,9 +169,14 @@ def apiClient():
 
         print('new_client=', newClient.api_id, newClient.auth_id)
         db_session.add(newClient)
-        db_session.commit()
-        flash('%s was sucessfully added!' % request.form['name'])
-        return redirect(url_for('apiClient'))
+        try:
+            db_session.commit()
+            flash('%s was sucessfully added!' % request.form['name'])
+            return redirect(url_for('apiClient'))
+        except:
+            print('some error could not save transaction, rolling back')
+            db_session.rollback()
+            db_session.commit()
     else:
         # pdb.set_trace()
         return render_template('/apiClients/apiClientNew.html')
@@ -186,9 +191,14 @@ def newCustomer():
         newCustomer = User_Customer(
             name=request.form['name'], email=request.form['email'], phone=request.form['phone'], user_id=current_user.id, status="SUBSCRIBED")
         db_session.add(newCustomer)
-        db_session.commit()
-        flash('%s was sucessfully added!' % request.form['name'])
-        return redirect(url_for('newCustomer'))
+        try:
+            db_session.commit()
+            flash('%s was sucessfully added!' % request.form['name'])
+            return redirect(url_for('newCustomer'))
+        except:
+            print('some error could not save transaction, rolling back')
+            db_session.rollback()
+            db_session.commit()
     else:
         # pdb.set_trace()
         return render_template('/customers/newCustomer.html')
@@ -197,41 +207,48 @@ def newCustomer():
 @app.route('/user/message/new', methods=['GET', 'POST'])
 @login_required
 def newMessage():
-    # This page will be for creating a new Customer
-    customers = db_session.query(
-        User_Customer).filter_by(user_id=current_user.id).all()
+    try:
+        # This page will be for creating a new Customer
+        customers = db_session.query(
+            User_Customer).filter_by(user_id=current_user.id).all()
 
-    if request.method == 'POST':
-        apiClient = db_session.query(User_Api_Client).filter_by(
-            user_id=current_user.id).all()[0]
-        destinationNumbers = list(map(lambda x: db_session.query(User_Customer).filter_by(
-            id=int(x)).one().phone, request.form.getlist('customerSelect')))
+        if request.method == 'POST':
+            apiClient = db_session.query(User_Api_Client).filter_by(
+                user_id=current_user.id).all()[0]
+            destinationNumbers = list(map(lambda x: db_session.query(User_Customer).filter_by(
+                id=int(x)).one().phone, request.form.getlist('customerSelect')))
 
-        # Commented out to not make unnecessary api calls
-        client = plivo.RestClient(
-            auth_id=aes_decrypt(apiClient.api_id), auth_token=aes_decrypt(apiClient.auth_id))
-        response = client.messages.create(
-            src=current_user.phone,
-            dst="<".join(destinationNumbers),
-            text=request.form['message'],
-            url="https://sms-messeger.herokuapp.com/message/status")
+            # Commented out to not make unnecessary api calls
+            client = plivo.RestClient(
+                auth_id=aes_decrypt(apiClient.api_id), auth_token=aes_decrypt(apiClient.auth_id))
+            response = client.messages.create(
+                src=current_user.phone,
+                dst="<".join(destinationNumbers),
+                text=request.form['message'],
+                url="https://sms-messeger.herokuapp.com/message/status")
 
-        # message_uuid = []
-        # for i in destinationNumbers:
-        #     message_uuid.append(datetime.datetime.now())
-        # response = {'message_uuid': message_uuid}
-        # uncomment below when using api
-        for i, uuid in enumerate(response.message_uuid, 0):
+            # message_uuid = []
+            # for i in destinationNumbers:
+            #     message_uuid.append(datetime.datetime.now())
+            # response = {'message_uuid': message_uuid}
+            # uncomment below when using api
+            for i, uuid in enumerate(response.message_uuid, 0):
 
-            # uncomment below when not using api
-            # for i, uuid in enumerate(response['message_uuid'], 0):
-            newMessage = Message(
-                user_id=current_user.id, user_customer_id=int(request.form.getlist('customerSelect')[i]), message_uuid=uuid, message=request.form['message'], direction="outbound")
-            db_session.add(newMessage)
-            db_session.commit()
-        flash('The message was sucessfully created!')
-        return redirect(url_for('newMessage', customers=customers))
-    else:
+                # uncomment below when not using api
+                # for i, uuid in enumerate(response['message_uuid'], 0):
+                newMessage = Message(
+                    user_id=current_user.id, user_customer_id=int(request.form.getlist('customerSelect')[i]), message_uuid=uuid, message=request.form['message'], direction="outbound")
+                db_session.add(newMessage)
+                db_session.commit()
+            flash('The message was sucessfully created!')
+            return redirect(url_for('newMessage', customers=customers))
+        else:
+            return render_template('/messages/newMessage.html', customers=customers)
+    except:
+        print('some error could not save transaction, rolling back')
+        db_session.rollback()
+        db_session.commit()
+        flash('There was some errors and some of your messages my have Failed!')
         return render_template('/messages/newMessage.html', customers=customers)
 
 
@@ -250,24 +267,32 @@ def apiClientEdit(api_client_id):
 
     # pdb.set_trace()
     # this page will be for creating API Clients
-    client = db_session.query(User_Api_Client).filter_by(id=api_client_id)
-    if client.one():
-        if request.method == 'POST':
-            client.update({
-                "name": request.form['name'], "api_id": aes_encrypt(request.form['api_id']), "auth_id": aes_encrypt(request.form['auth_id'])})
-            db_session.commit()
-            flash('%s was sucessfully updated!' % request.form['name'])
-            return redirect(url_for('apiClientEdit', api_client_id=api_client_id))
-        else:
-            # pdb.set_trace()
-            apiClient = client.one()
-            id = apiClient.id
-            api_id = aes_decrypt(apiClient.api_id)
-            auth_id = aes_decrypt(apiClient.auth_id)
-            name = apiClient.name
-            return render_template('/apiClients/apiClientEdit.html', id=id, api_id=api_id, auth_id=auth_id, clientName=name)
+    try:
+        client = db_session.query(User_Api_Client).filter_by(id=api_client_id)
+        if client.one():
+            if request.method == 'POST':
+                client.update({
+                    "name": request.form['name'], "api_id": aes_encrypt(request.form['api_id']), "auth_id": aes_encrypt(request.form['auth_id'])})
+                db_session.commit()
+                flash('%s was sucessfully updated!' % request.form['name'])
+                return redirect(url_for('apiClientEdit', api_client_id=api_client_id))
 
-    else:
+            else:
+                # pdb.set_trace()
+                apiClient = client.one()
+                id = apiClient.id
+                api_id = aes_decrypt(apiClient.api_id)
+                auth_id = aes_decrypt(apiClient.auth_id)
+                name = apiClient.name
+                return render_template('/apiClients/apiClientEdit.html', id=id, api_id=api_id, auth_id=auth_id, clientName=name)
+
+        else:
+            flash('API Client Id %s not found!' % api_client_id)
+            return render_template('/apiClients/apiClients.html')
+    except:
+        print('some error could not save transaction, rolling back')
+        db_session.rollback()
+        db_session.commit()
         flash('API Client Id %s not found!' % api_client_id)
         return render_template('/apiClients/apiClients.html')
 
@@ -278,26 +303,33 @@ def customerEdit(customer_id):
 
     # pdb.set_trace()
     # this page will be for creating API Clients
-    customer = db_session.query(User_Customer).filter_by(id=customer_id)
-    if customer.first():
-        if request.method == 'POST':
-            customer.update({
-                "name": request.form['customerName'], "phone": request.form['customerPhone'], "email": request.form['customerEmail'], 'status': request.form['customerStatus']})
+    try:
+        customer = db_session.query(User_Customer).filter_by(id=customer_id)
+        if customer.first():
+            if request.method == 'POST':
+                customer.update({
+                    "name": request.form['customerName'], "phone": request.form['customerPhone'], "email": request.form['customerEmail'], 'status': request.form['customerStatus']})
 
-            # pdb.set_trace()
-            db_session.commit()
-            flash('%s was sucessfully updated!' % request.form['customerName'])
-            # return redirect(url_for('customerEdit', customer_id=customer.one().id))
+                db_session.commit()
+                flash('%s was sucessfully updated!' %
+                      request.form['customerName'])
+                # return redirect(url_for('customerEdit', customer_id=customer.one().id))
+                return redirect(url_for('Customers', customers=db_session.query(User_Customer).filter_by(
+                    user_id=current_user.id).all()))
+            else:
+                # pdb.set_trace()
+
+                return render_template('/customers/customerEdit.html', customer=customer.one())
+
+        else:
+            flash('Customer with Id %s not found!' % customer_id)
+            # return render_template('/customers/customers.html')
             return redirect(url_for('Customers', customers=db_session.query(User_Customer).filter_by(
                 user_id=current_user.id).all()))
-        else:
-            # pdb.set_trace()
-
-            return render_template('/customers/customerEdit.html', customer=customer.one())
-
-    else:
-        flash('Customer with Id %s not found!' % customer_id)
-        # return render_template('/customers/customers.html')
+    except:
+        db_session.rollback()
+        db_session.commit()
+        flash('Something went wrong, rolling back transactions!')
         return redirect(url_for('Customers', customers=db_session.query(User_Customer).filter_by(
             user_id=current_user.id).all()))
 
@@ -315,25 +347,41 @@ def customerEdit(customer_id):
 @login_required
 def apiClientDelete(api_client_id):
 
-    client = db_session.query(User_Api_Client).get(api_client_id)
-    db_session.delete(client)
-    db_session.commit()
-    flash("%s was sucessfully Deleted!" % client.name)
-    clients = db_session.query(User_Api_Client).filter_by(
-        user_id=current_user.id).all()
-    return render_template('/apiClients/apiClients.html', clients=clients)
+    try:
+        client = db_session.query(User_Api_Client).get(api_client_id)
+        db_session.delete(client)
+        db_session.commit()
+        flash("%s was sucessfully Deleted!" % client.name)
+        clients = db_session.query(User_Api_Client).filter_by(
+            user_id=current_user.id).all()
+        return render_template('/apiClients/apiClients.html', clients=clients)
+    except:
+        flash("Something went wrong rolling back transaction!" % client.name)
+        print('some error could not save transaction, rolling back')
+        db_session.rollback()
+        db_session.commit()
 
 
 @app.route('/user/customer/<int:customer_id>/delete', methods=['GET', 'POST'])
 @login_required
 def customerDelete(customer_id):
-    customer = db_session.query(User_Customer).get(customer_id)
-    db_session.delete(customer)
-    db_session.commit()
-    flash("%s was sucessfully Deleted!" % customer.name)
-    customers = db_session.query(User_Customer).filter_by(
-        user_id=current_user.id).all()
-    return render_template('/customers/customers.html', customers=customers)
+    try:
+        customer = db_session.query(User_Customer).get(customer_id)
+        db_session.delete(customer)
+        db_session.commit()
+        flash("%s was sucessfully Deleted!" % customer.name)
+        customers = db_session.query(User_Customer).filter_by(
+            user_id=current_user.id).all()
+        return render_template('/customers/customers.html', customers=customers)
+    except:
+
+        print('some error could not save transaction, rolling back')
+        db_session.rollback()
+        db_session.commit()
+        flash("Encountered some errors, rolling back transactions")
+        customers = db_session.query(User_Customer).filter_by(
+            user_id=current_user.id).all()
+        return render_template('/customers/customers.html', customers=customers)
 
 
 @app.route('/message/<int:message_id>/delete', methods=['GET', 'POST'])
@@ -342,12 +390,21 @@ def messageDelete(message_id):
 
     message = db_session.query(Message).get(message_id)
     # pdb.set_trace()
-    db_session.delete(message)
-    db_session.commit()
-    flash("%s was sucessfully Deleted!" % message.message)
-    sms_messages = db_session.query(Message).filter_by(
-        user_id=current_user.id).order_by(Message.id.desc()).all()
-    return render_template('/messages/messages.html', sms_messages=sms_messages)
+    try:
+        db_session.delete(message)
+        db_session.commit()
+        flash("%s was sucessfully Deleted!" % message.message)
+        sms_messages = db_session.query(Message).filter_by(
+            user_id=current_user.id).order_by(Message.id.desc()).all()
+        return render_template('/messages/messages.html', sms_messages=sms_messages)
+    except:
+        print('some error could not save transaction, rolling back')
+        db_session.rollback()
+        db_session.commit()
+        flash("Something went wrong, rolling back transaction!")
+        sms_messages = db_session.query(Message).filter_by(
+            user_id=current_user.id).order_by(Message.id.desc()).all()
+        return render_template('/messages/messages.html', sms_messages=sms_messages)
 
 
 """--------------------------------------------------------------------------
@@ -361,16 +418,21 @@ def messageDelete(message_id):
 
 @app.route('/message/status', methods=['POST'])
 def statusMessage():
-    message = db_session.query(Message).filter_by(
-        message_uuid=request.form["MessageUUID"])
-    message.update({"status": request.form["Status"],
-                    "units": request.form["Units"],
-                    "total_rate": request.form["TotalRate"],
-                    "total_amount": request.form["TotalAmount"],
-                    "message_time": datetime.datetime.now()})
-    db_session.commit()
-    print(message.one().serialize)
-    return jsonify(message.one().serialize)
+    try:
+        message = db_session.query(Message).filter_by(
+            message_uuid=request.form["MessageUUID"])
+        message.update({"status": request.form["Status"],
+                        "units": request.form["Units"],
+                        "total_rate": request.form["TotalRate"],
+                        "total_amount": request.form["TotalAmount"],
+                        "message_time": datetime.datetime.now()})
+        db_session.commit()
+        print(message.one().serialize)
+        return jsonify(message.one().serialize)
+    except:
+        print('some error could not save transaction, rolling back')
+        db_session.rollback()
+        db_session.commit()
 
 
 @app.route('/message/inbound/new', methods=['POST'])
@@ -378,36 +440,37 @@ def newInboundMessage():
     """ This page will be for all inbound messages, check if customer exists if so, check content of message if == "UNSUBSCRIBE", change user status.
     If customer does not exist add to database.
     """
-    print ('requestform', request.form)
-    first_user = db_session.query(User).get(1).phone
-    print("phone= %s, To= %s == %s" % (first_user,
-                                       str(request.form['To']), first_user == str(request.form['To'])))
-    # pdb.set_trace()
-    user = db_session.query(User).filter_by(
-        phone=int(request.form['To'])).one()
+    try:
+        print ('requestform', request.form)
+        tel = str(request.form['To'])
+        user = db_session.query(User).filter_by(
+            phone=tel).one()
 
-    if user:
-        customer = db_session.query(
-            User_Customer).filter_by(phone=request.form['From']).first()
-        if customer:
-            if request.form['Text'] == "UNSUBSCRIBE":
-                customer.status = "UNSUBSCRIBED"
-        else:
-            customer = User_Customer(
-                name='UNKNOWN', phone=request.form['From'], user_id=user.id, status="SUBSCRIBED")
-            db_session.add(customer)
+        if user:
+            customer = db_session.query(
+                User_Customer).filter_by(phone=request.form['From']).first()
+            if customer:
+                if request.form['Text'] == "UNSUBSCRIBE":
+                    customer.status = "UNSUBSCRIBED"
+            else:
+                customer = User_Customer(
+                    name='UNKNOWN', phone=request.form['From'], user_id=user.id, status="SUBSCRIBED")
+                db_session.add(customer)
+                db_session.commit()
+
+            newMessage = Message(
+                user_id=user.id, user_customer_id=customer.id, message_uuid=request.form['MessageUUID'], message=request.form['Text'], direction="inbound", status="RECEIVED",
+                units=request.form["Units"],
+                total_rate=request.form["TotalRate"],
+                total_amount=request.form["TotalAmount"], error_code="200", message_time=datetime.datetime.now())
+
+            db_session.add(newMessage)
             db_session.commit()
-
-        newMessage = Message(
-            user_id=user.id, user_customer_id=customer.id, message_uuid=request.form['MessageUUID'], message=request.form['Text'], direction="inbound", status="RECEIVED",
-            units=request.form["Units"],
-            total_rate=request.form["TotalRate"],
-            total_amount=request.form["TotalAmount"], error_code="200", message_time=datetime.datetime.now())
-
-        db_session.add(newMessage)
+            return jsonify(newMessage.serialize)
+    except:
+        print('Something went wrong, rolling back transaction!')
+        db_session.rollback()
         db_session.commit()
-
-        return jsonify(newMessage.serialize)
 
 
 @app.route('/users/JSON/')
@@ -442,5 +505,5 @@ def apiClientsJSON():
 
 
 if __name__ == '__main__':
-    # app.run("", port=3000)
-    app.run()
+    app.run("", port=3000)
+    # app.run()
