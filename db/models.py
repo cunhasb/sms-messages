@@ -108,6 +108,7 @@ class Message(Base):
     message = Column(String())
     direction = Column(String(10))
     status = Column(String(15))
+    message_time = Column(DateTime())
     units = Column(Integer())
     total_rate = Column(String())
     total_amount = Column(String())
@@ -129,6 +130,7 @@ class Message(Base):
             'user_id': self.user_id,
             'customer_id': self.user_customer_id,
             'message': self.message,
+            'message_time': self.message_time,
             'direction': self.direction,
             'status': self.status,
             'units': self.units,

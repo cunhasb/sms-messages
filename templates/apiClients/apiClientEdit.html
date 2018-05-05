@@ -1,0 +1,57 @@
+{%extends 'base.html'%}
+{%block container%}
+{% with messages = get_flashed_messages()%}
+{%if messages%}
+<ul>
+  {% for message in messages %}
+    <li><strong>{{message}}</strong></li>
+    {%endfor%}
+  </ul>
+  {%endif%}
+  {%endwith%}
+<form class="needs-validation" action='{{url_for('apiClientEdit',api_client_id=id)}}' method='POST'>
+  <div class="form-row">
+    <div class="col-md-4 mb-3">
+      <label for="clientName">API Client Name</label>
+      <input  value = {{clientName}} name='name' type="text" class="form-control" id="clientName" placeholder="Client Name" aria-describedby="textHelp" required>
+    </div>
+    <div class="col-md-3 mb-3">
+    <label for="api_id">Client API Id</label>
+    <input type="text" value ={{api_id}} class="form-control" id="api_id" name='api_id' aria-describedby="textHelp" placeholder="Enter API Id" required>
+    </div>
+    <div class="col-md-5 mb-3">
+      <label for="auth_id">AUTH Code</label>
+    <input type="text" value ={{auth_id}} class="form-control" id="auth_id" name='auth_id' aria-describedby="textHelp" placeholder="Enter API AUTH Code">
+    </div>
+  </div>
+   <button class="btn btn-primary" type="submit">Submit</button>
+</form>
+<script>
+// Example starter JavaScript for disabling form submissions if there are invalid fields
+(() => {
+  "use strict";
+  window.addEventListener(
+    "load",
+    function() {
+      // Fetch all the forms we want to apply custom Bootstrap validation styles to
+      const forms = document.getElementsByClassName("needs-validation");
+      // Loop over them and prevent submission
+      Array.prototype.filter.call(forms, form => {
+        form.addEventListener(
+          "submit",
+          event => {
+            if (form.checkValidity() === false) {
+              event.preventDefault();
+              event.stopPropagation();
+            }
+            form.classList.add("was-validated");
+          },
+          false
+        );
+      });
+    },
+    false
+  );
+})();
+</script>
+{% endblock %}

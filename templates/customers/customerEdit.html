@@ -1,0 +1,66 @@
+{%extends 'base.html'%}
+{%block container%}
+{% with messages = get_flashed_messages()%}
+{%if messages%}
+<ul>
+  {% for message in messages %}
+    <li><strong>{{message}}</strong></li>
+    {%endfor%}
+  </ul>
+  {%endif%}
+  {%endwith%}
+<form class="needs-validation" action='{{url_for('customerEdit',customer_id=customer.id)}}' method='POST'>
+  <div class="form-row">
+    <div class="col-md-4 mb-1">
+      <label for="customerName">Customer Name</label>
+      <input  value = {{customer.name}} name='customerName' type="text" class="form-control" id="customerName" placeholder="Enter Customer Name" aria-describedby="textHelp" required>
+    </div>
+    <div class="col-md-2 mb-1">
+    <label for="customerPhone">Customer Phone</label>
+    <input type="tel" value ={{customer.phone}} class="form-control" id="customerPhone" name='customerPhone' aria-describedby="textHelp" placeholder="Enter Phone" required>
+    </div>
+    <div class="col-md-4 mb-1">
+      <label for="customerEmail">Customer Email</label>
+    <input type="email" value ={{customer.email}} class="form-control" id="customerEmail" name='customerEmail' aria-describedby="textHelp" placeholder="Enter Email">
+    </div>
+    <div class="col-md-2 mb-1">
+      <label for="customerStatus">Status</label>
+      <select name='customerStatus' id='customerStatus'>
+        <optgroup  label="Status">
+          <option value="SUBSCRIBED">SUBSCRIBED</option>
+          <option value="UNSUBSCRIBED">UNSUBSCRIBED</option>
+        </optgroup>
+      </select>
+    </div>
+  </div>
+   <button class="btn btn-primary" type="submit">Submit</button>
+</form>
+<script>
+// Example starter JavaScript for disabling form submissions if there are invalid fields
+(() => {
+  "use strict";
+  window.addEventListener(
+    "load",
+    function() {
+      // Fetch all the forms we want to apply custom Bootstrap validation styles to
+      const forms = document.getElementsByClassName("needs-validation");
+      // Loop over them and prevent submission
+      Array.prototype.filter.call(forms, form => {
+        form.addEventListener(
+          "submit",
+          event => {
+            if (form.checkValidity() === false) {
+              event.preventDefault();
+              event.stopPropagation();
+            }
+            form.classList.add("was-validated");
+          },
+          false
+        );
+      });
+    },
+    false
+  );
+})();
+</script>
+{% endblock %}

@@ -20,7 +20,6 @@ import pdb
 import plivo
 import os
 
-# setEnvironVariables()
 # Create app
 app = Flask(__name__)
 
@@ -40,7 +39,7 @@ app.config['SECURITY_SEND_REGISTER_EMAIL'] = False
 # app.config['MAIL_PASSWORD'] = secrets('mailPassword')
 
 
-# heroku = Heroku(app)
+heroku = Heroku(app)
 
 
 def aes_encrypt(data):
@@ -175,7 +174,7 @@ def apiClient():
         return redirect(url_for('apiClient'))
     else:
         # pdb.set_trace()
-        return render_template('/apiClients/apiClient.html')
+        return render_template('/apiClients/apiClientNew.html')
 
 
 @app.route('/user/customer/new', methods=['GET', 'POST'])
@@ -209,26 +208,23 @@ def newMessage():
             id=int(x)).one().phone, request.form.getlist('customerSelect')))
 
         # Commented out to not make unnecessary api calls
-        # client = plivo.RestClient(
-        #     auth_id=aes_decrypt(apiClient.api_id), auth_token=aes_decrypt(apiClient.auth_id))
-        # response = client.messages.create(
-        #     src=current_user.phone,
-        #     dst="<".join(destinationNumbers),
-        #     text=request.form['message'],
-        #     url="https://sms-messeger.herokuapp.com/message/status")
+        client = plivo.RestClient(
+            auth_id=aes_decrypt(apiClient.api_id), auth_token=aes_decrypt(apiClient.auth_id))
+        response = client.messages.create(
+            src=current_user.phone,
+            dst="<".join(destinationNumbers),
+            text=request.form['message'],
+            url="https://sms-messeger.herokuapp.com/message/status")
 
-        # pdb.set_trace()
-
-        message_uuid = []
-        for i in destinationNumbers:
-            message_uuid.append(datetime.datetime.now())
-        # pdb.set_trace()
-        response = {'message_uuid': message_uuid}
+        # message_uuid = []
+        # for i in destinationNumbers:
+        #     message_uuid.append(datetime.datetime.now())
+        # response = {'message_uuid': message_uuid}
         # uncomment below when using api
-        # for i, uuid in enumerate(response.message_uuid, 0):
+        for i, uuid in enumerate(response.message_uuid, 0):
 
-        # uncomment below when not using api
-        for i, uuid in enumerate(response['message_uuid'], 0):
+            # uncomment below when not using api
+            # for i, uuid in enumerate(response['message_uuid'], 0):
             newMessage = Message(
                 user_id=current_user.id, user_customer_id=int(request.form.getlist('customerSelect')[i]), message_uuid=uuid, message=request.form['message'], direction="outbound")
             db_session.add(newMessage)
@@ -238,6 +234,121 @@ def newMessage():
     else:
         # pdb.set_trace()
         return render_template('/messages/newMessage.html', customers=customers)
+
+
+"""--------------------------------------------------------------------------
+
+
+                                    Edit
+
+ ----------------------------------------------------------------------------
+"""
+
+
+@app.route('/user/api-client/<int:api_client_id>/edit', methods=['GET', 'POST'])
+@login_required
+def apiClientEdit(api_client_id):
+
+    # pdb.set_trace()
+    # this page will be for creating API Clients
+    client = db_session.query(User_Api_Client).filter_by(id=api_client_id)
+    if client.one():
+        if request.method == 'POST':
+            client.update({
+                "name": request.form['name'], "api_id": aes_encrypt(request.form['api_id']), "auth_id": aes_encrypt(request.form['auth_id'])})
+            db_session.commit()
+            flash('%s was sucessfully updated!' % request.form['name'])
+            return redirect(url_for('apiClientEdit', api_client_id=api_client_id))
+        else:
+            # pdb.set_trace()
+            apiClient = client.one()
+            id = apiClient.id
+            api_id = aes_decrypt(apiClient.api_id)
+            auth_id = aes_decrypt(apiClient.auth_id)
+            name = apiClient.name
+            return render_template('/apiClients/apiClientEdit.html', id=id, api_id=api_id, auth_id=auth_id, clientName=name)
+
+    else:
+        flash('API Client Id %s not found!' % api_client_id)
+        return render_template('/apiClients/apiClients.html')
+
+
+@app.route('/user/customer/<int:customer_id>/edit', methods=['GET', 'POST'])
+@login_required
+def customerEdit(customer_id):
+
+    # pdb.set_trace()
+    # this page will be for creating API Clients
+    customer = db_session.query(User_Customer).filter_by(id=customer_id)
+    if customer.first():
+        if request.method == 'POST':
+            customer.update({
+                "name": request.form['customerName'], "phone": request.form['customerPhone'], "email": request.form['customerEmail'], 'status': request.form['customerStatus']})
+
+            # pdb.set_trace()
+            db_session.commit()
+            flash('%s was sucessfully updated!' % request.form['customerName'])
+            # return redirect(url_for('customerEdit', customer_id=customer.one().id))
+            return redirect(url_for('Customers', customers=db_session.query(User_Customer).filter_by(
+                user_id=current_user.id).all()))
+        else:
+            # pdb.set_trace()
+
+            return render_template('/customers/customerEdit.html', customer=customer.one())
+
+    else:
+        flash('Customer with Id %s not found!' % customer_id)
+        # return render_template('/customers/customers.html')
+        return redirect(url_for('Customers', customers=db_session.query(User_Customer).filter_by(
+            user_id=current_user.id).all()))
+
+
+"""--------------------------------------------------------------------------
+
+
+                                    Delete
+
+ ----------------------------------------------------------------------------
+"""
+
+
+@app.route('/user/api-client/<int:api_client_id>/delete', methods=['GET', 'POST'])
+@login_required
+def apiClientDelete(api_client_id):
+
+    client = db_session.query(User_Api_Client).get(api_client_id)
+    db_session.delete(client)
+    db_session.commit()
+    flash("%s was sucessfully Deleted!" % client.name)
+    clients = db_session.query(User_Api_Client).filter_by(
+        user_id=current_user.id).all()
+    return render_template('/apiClients/apiClients.html', clients=clients)
+
+
+@app.route('/user/customer/<int:customer_id>/delete', methods=['GET', 'POST'])
+@login_required
+def customerDelete(customer_id):
+    customer = db_session.query(User_Customer).get(customer_id)
+    db_session.delete(customer)
+    db_session.commit()
+    flash("%s was sucessfully Deleted!" % customer.name)
+    customers = db_session.query(User_Customer).filter_by(
+        user_id=current_user.id).all()
+    return render_template('/customers/customers.html', customers=customers)
+
+
+@app.route('/message/<int:message_id>/delete', methods=['GET', 'POST'])
+@login_required
+def messageDelete(message_id):
+
+    message = db_session.query(Message).get(message_id)
+    # pdb.set_trace()
+    db_session.delete(message)
+    db_session.commit()
+    flash("%s was sucessfully Deleted!" % message.message)
+    sms_messages = db_session.query(Message).filter_by(
+        user_id=current_user.id).order_by(Message.id.desc()).all()
+    return render_template('/messages/messages.html', sms_messages=sms_messages)
 
 
 """--------------------------------------------------------------------------
@@ -256,7 +367,8 @@ def statusMessage():
     message.update({"status": request.form["Status"],
                     "units": request.form["Units"],
                     "total_rate": request.form["TotalRate"],
-                    "total_amount": request.form["TotalAmount"]})
+                    "total_amount": request.form["TotalAmount"],
+                    "message_time": datetime.datetime.now()})
     db_session.commit()
     return jsonify(message.one().serialize)
 
@@ -283,10 +395,10 @@ def newInboundMessage():
             db_session.commit()
 
         newMessage = Message(
-            user_id=user.id, user_customer_id=customer.id, message_uuid=request.form['MessageUUID'], message=request.form['Text'], direction="INBOUND", status="RECEIVED",
+            user_id=user.id, user_customer_id=customer.id, message_uuid=request.form['MessageUUID'], message=request.form['Text'], direction="inbound", status="RECEIVED",
             units=request.form["Units"],
             total_rate=request.form["TotalRate"],
-            total_amount=request.form["TotalAmount"], error_code="200")
+            total_amount=request.form["TotalAmount"], error_code="200", message_time=datetime.datetime.now())
 
         db_session.add(newMessage)
         db_session.commit()

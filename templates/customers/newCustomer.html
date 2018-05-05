@@ -11,16 +11,26 @@
   {%endwith%}
 <form class="needs-validation" action='{{url_for('newCustomer')}}' method='POST'>
   <div class="form-row">
-    <div class="col-md-4 mb-3">
+    <div class="col-md-4 mb-1">
       <label for="newCustomer">Customer Name</label>
       <input name='name' type="text" class="form-control" id="customerName" placeholder="Customer Name" required>
-    </div><div class="col-md-4 mb-3">
-    <label for="phone">Phone Number</label>
-  <input type="tel" class="form-control" id="customerTel" name='phone' aria-describedby="telHelp" placeholder="Enter Phone Number" required></div>
-      <div class="col-md-4 mb-3">
-      <label for="email">Email address</label>
-    <input type="email" class="form-control" id="customerEmail" name='email' aria-describedby="emailHelp" placeholder="Enter email">
-
+    </div>
+    <div class="col-md-4 mb-1">
+        <label for="phone">Phone Number</label>
+        <input type="tel" class="form-control" id="customerTel" name='phone' aria-describedby="telHelp" placeholder="Enter Phone Number" required>
+      </div>
+      <div class="col-md-4 mb-1">
+        <label for="email">Email address</label>
+        <input type="email" class="form-control" id="customerEmail" name='email' aria-describedby="emailHelp" placeholder="Enter email">
+      </div>
+      <div class="col-md-4 mb-1">
+        <label for="customerStatus">Status</label>
+        <select name='customerStatus' id='customerStatus'>
+          <optgroup  label="Status">
+            <option value="SUBSCRIBED">SUBSCRIBED</option>
+            <option value="UNSUBSCRIBED">UNSUBSCRIBED</option>
+          </optgroup>
+        </select>
     </div>
   </div>
    <button class="btn btn-primary" type="submit">Add new Customer</button>

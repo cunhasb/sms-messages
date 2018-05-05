@@ -11,7 +11,7 @@
   {%endwith%}
 <main role="main">
 
-      <section class="jumbotron text-center">
+      <section class="jumbotron  text-center">
         <div class="container">
           <h1 class="jumbotron-heading">Your Messages</h1>
           <p class="lead text-muted">Here is where you will view and configure all the attributes of your Messages.</p>
@@ -19,36 +19,78 @@
             <a href="/user/message/new" class="btn btn-primary my-2">Create New Message</a>
           </p>
         </div>
+
+        <!-- <nav class="navbar navbar-expand-lg navbar-light bg-light">
+          <form class="form-inline my-2 my-lg-0">
+            <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+            <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+            <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+    </form>
+  </nav> -->
       </section>
 
-      <div class="album py-5 bg-light">
+      <div class="album py-5 bg-light container-fluid">
         <div class="container">
           <div class="row">
             {% for smsMessage in sms_messages %}
-            <div class="col-md-4">
+            <div class="col-md-4 ">
               <div class="card-group">
               <div class="card mb-4 box-shadow">
-                <div class="card-body">
+                {%if smsMessage.direction=='inbound'%}
+                  <!-- <div class "card-body"> -->
+                  <div class ="card-body " style="background-color: rgba(21, 152, 100,0.1)">
+                {%else %}
+                <!-- <div class "card-body bg-light"> -->
+                    <div class ="card-body " style="background-color: rgba(21, 152, 175,0.1)">
+                {%endif%}
                   <h5 class="card-title">{{smsMessage.customer.name}}</h5>
                   <p class = 'card-text'>{{"Phone: %s"%(smsMessage.customer.phone)}}</p>
-                  <p class = 'card-text'>'{{smsMessage.message}}'</p>
-                  <p class = 'card-text'>'{{smsMessage.status}}'</p>
-                  <p class = 'card-text'>'{{smsMessage.direction}}'</p>
+                  <p class = 'card-text'>{{"Message: %s"%smsMessage.message}}</p>
+                  <p class = 'card-text'>{{"Status: %s"%smsMessage.status}}</p>
+                  <p class = 'card-text'>{{"Time: %s"%smsMessage.message_time}}</p>
+                  <p class = 'card-text'>{{"Direction: %s"%smsMessage.direction}}</p>
+
                   <div class="d-flex justify-content-between align-items-center">
                     <div class="btn-group">
-                      <button type="button" class="btn btn-sm btn-outline-secondary">View</button>
-                      <button type="button" class="btn btn-sm btn-outline-secondary">Reply</button>
-                      <button type="button" class="btn btn-sm btn-outline-secondary">Delete</button>
+                      <!-- <button type="button" class="btn btn-sm btn-outline-dark">View</button>
+                      <button type="button" class="btn btn-sm btn-outline-dark">Reply</button> -->
+
+                      <button type="button" class="btn btn-sm btn-outline-secondary" data-toggle="modal" data-target="#confirmDeleteModalCenter">Delete</button>
+
+
                     </div>
                   </div>
                 </div>
               </div>
             </div>
             </div>
+            <!-- Modal -->
+            <div class="modal fade" id="confirmDeleteModalCenter" tabindex="-1" role="dialog" aria-labelledby="confirmDeleteModalCenterTitle" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="confirmDeleteModalLongTitle">Warning</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                    {{"Are you Sure you want to delete %s?"%smsMessage.text }}
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-success" data-dismiss="modal">Cancel</button>
+                    <a href={{"/message/%s/delete"%smsMessage.id}} class="btn btn-danger">Delete</a>
+                  </div>
+                </div>
+              </div>
+            </div>
             {%endfor%}
           </div>
         </div>
       </div>
-    </main>
 
+    </main>
 {% endblock %}
