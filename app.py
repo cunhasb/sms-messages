@@ -443,9 +443,10 @@ def newInboundMessage():
     try:
         print ('requestform', request.form)
         tel = str(request.form['To'])
-        print("type(%s) = %s - type of To=%s %s, tel=to== %s" % (tel, type(tel),
-                                                                 request.form['To'], type(request.form['To']), tel == first.phone))
-        first = db_session.query(User).filter_by(phone=tel)
+        print tel
+            tel, type(tel), tel == first.phone))
+                first=db_session.query(User).filter_by(phone=tel)
+                print("type(%s) = %s - type of To=%s %s, tel=to== %s" % (first.phone, type(phone),
         print('first=%s' % first.first().phone)
         user = db_session.query(User).filter_by(
             phone=tel).one()
