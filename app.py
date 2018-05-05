@@ -450,7 +450,8 @@ def newInboundMessage():
         outro = db_session.query(User).all()
         print ("outro", outro[0].phone)
         print("outro depois", outro.filter_by(
-            phone='17323605788').first().username)
+            phone='17323605788').first())
+        print("depois", outro.filter_by(phone=tel).first())
         teste = db_session.query(User).filter(User.phone == '17323605788')
         print('teste %s,%s' % (teste, teste.first().phone))
         first = db_session.query(User).filter_by(phone='17323605788')
