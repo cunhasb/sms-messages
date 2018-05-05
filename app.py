@@ -39,7 +39,7 @@ app.config['SECURITY_SEND_REGISTER_EMAIL'] = False
 # app.config['MAIL_PASSWORD'] = secrets('mailPassword')
 
 
-# heroku = Heroku(app)
+heroku = Heroku(app)
 
 
 def aes_encrypt(data):
@@ -443,22 +443,25 @@ def newInboundMessage():
     try:
         print ('requestform', request.form)
         tel = str(request.form['To'])
-        user = db_session.query(User).filter_by(
+        print("type(%s) = %s - type of To=%s %s, tel=to== %s" % (tel, type(tel), request.form['To', type(request.form['To'])])
+        first=db_session.query(User).filter_by(phone=tel)
+        print('first=%s' % first.first().phone)
+        user=db_session.query(User).filter_by(
             phone=tel).one()
 
         if user:
-            customer = db_session.query(
+            customer=db_session.query(
                 User_Customer).filter_by(phone=request.form['From']).first()
             if customer:
                 if request.form['Text'] == "UNSUBSCRIBE":
-                    customer.status = "UNSUBSCRIBED"
+                    customer.status="UNSUBSCRIBED"
             else:
-                customer = User_Customer(
+                customer=User_Customer(
                     name='UNKNOWN', phone=request.form['From'], user_id=user.id, status="SUBSCRIBED")
                 db_session.add(customer)
                 db_session.commit()
 
-            newMessage = Message(
+            newMessage=Message(
                 user_id=user.id, user_customer_id=customer.id, message_uuid=request.form['MessageUUID'], message=request.form['Text'], direction="inbound", status="RECEIVED",
                 units=request.form["Units"],
                 total_rate=request.form["TotalRate"],
@@ -476,7 +479,7 @@ def newInboundMessage():
 @app.route('/users/JSON/')
 @login_required
 def usersJSON():
-    users = db_session.query(User).all()
+    users=db_session.query(User).all()
     return jsonify(Users=[i.serialize for i in users])
 
 
@@ -484,8 +487,8 @@ def usersJSON():
 @login_required
 def userCustomersJSON(user_id):
     # pdb.set_trace()
-    user = db_session.query(User).filter_by(id=user_id).one()
-    customers = db_session.query(
+    user=db_session.query(User).filter_by(id=user_id).one()
+    customers=db_session.query(
         User_Customer).filter_by(user_id=user_id).all()
     return jsonify(User=[i.serialize for i in user], User_Customer=[i.serialize for i in customers])
 
@@ -493,17 +496,17 @@ def userCustomersJSON(user_id):
 @app.route('/messages/JSON')
 @login_required
 def messagesJSON():
-    messages = db_session.query(Message).all()
+    messages=db_session.query(Message).all()
     return jsonify(Message=[i.serialize for i in messages])
 
 
 @app.route('/user/api-clients/JSON')
 @login_required
 def apiClientsJSON():
-    apiClients = db_session.query(User_Api_Client).all()
+    apiClients=db_session.query(User_Api_Client).all()
     return jsonify(User_Api_Client=[i.serialize for i in apiClients])
 
 
 if __name__ == '__main__':
-    app.run("", port=3000)
-    # app.run()
+    # app.run("", port=3000)
+    app.run()
