@@ -447,6 +447,8 @@ def newInboundMessage():
         print("type %s" % type(tel))
         print ("session %s" % db_session)
         print ("User %s" % User)
+        outro = db_session.query(User).all()[0].phone
+        print ("outro", outro)
         teste = db_session.query(User).filter(User.phone == '17323605788')
         print('teste %s,%s' % (teste, teste.first().phone))
         first = db_session.query(User).filter_by(phone='17323605788')
