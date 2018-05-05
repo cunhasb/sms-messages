@@ -369,6 +369,7 @@ def statusMessage():
                     "total_amount": request.form["TotalAmount"],
                     "message_time": datetime.datetime.now()})
     db_session.commit()
+    print(message.one().serialize)
     return jsonify(message.one().serialize)
 
 
@@ -378,6 +379,9 @@ def newInboundMessage():
     If customer does not exist add to database.
     """
     print ('requestform', request.form)
+    first_user = db_session.query(User).get(1).phone
+    print("phone= %s, To= %s == %s" % (first.user.phone,
+                                       request.form['To'], first.user.phone == request.form['To']))
     # pdb.set_trace()
     user = db_session.query(User).filter_by(phone=request.form['To']).one()
 
