@@ -406,7 +406,7 @@ def newInboundMessage():
 
 
 @app.route('/users/JSON/')
-# @login_required
+@login_required
 def usersJSON():
     users = db_session.query(User).all()
     return jsonify(Users=[i.serialize for i in users])
@@ -423,14 +423,14 @@ def userCustomersJSON(user_id):
 
 
 @app.route('/messages/JSON')
-# @login_required
+@login_required
 def messagesJSON():
     messages = db_session.query(Message).all()
     return jsonify(Message=[i.serialize for i in messages])
 
 
 @app.route('/user/api-clients/JSON')
-# @login_required
+@login_required
 def apiClientsJSON():
     apiClients = db_session.query(User_Api_Client).all()
     return jsonify(User_Api_Client=[i.serialize for i in apiClients])
