@@ -380,8 +380,8 @@ def newInboundMessage():
     """
     print ('requestform', request.form)
     first_user = db_session.query(User).get(1).phone
-    print("phone= %s, To= %s == %s" % (first_user,
-                                       request.form['To'], first_user == request.form['To']))
+    print("phone= %s, To= %s == %s" % (int(first_user),
+                                       int(request.form['To']), int(first_user) == int(request.form['To'])))
     # pdb.set_trace()
     user = db_session.query(User).filter_by(phone=request.form['To']).one()
 
