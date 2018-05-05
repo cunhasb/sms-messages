@@ -232,7 +232,6 @@ def newMessage():
         flash('The message was sucessfully created!')
         return redirect(url_for('newMessage', customers=customers))
     else:
-        # pdb.set_trace()
         return render_template('/messages/newMessage.html', customers=customers)
 
 
@@ -438,5 +437,5 @@ def apiClientsJSON():
 
 
 if __name__ == '__main__':
-    app.run("", port=3000)
-    # app.run()
+    # app.run("", port=3000)
+    app.run()
