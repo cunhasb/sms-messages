@@ -424,7 +424,7 @@ def statusMessage():
         message = db_session.query(Message).filter_by(
             message_uuid=messageUuid)
         message.update({"status": request.form["Status"],
-                        "units": request.form["Units"],
+                        "units": int(request.form["Units"]),
                         "total_rate": request.form["TotalRate"],
                         "total_amount": request.form["TotalAmount"],
                         "message_time": datetime.datetime.now()})
