@@ -348,7 +348,7 @@ def customerEdit(customer_id):
 def apiClientDelete(api_client_id):
 
     try:
-        client = db_session.query(User_Api_Client).filter_by(id=api_client_id)
+        client = db_session.query(User_Api_Client).get(api_client_id)
         db_session.delete(client)
         db_session.commit()
         flash("%s was sucessfully Deleted!" % client.name)
@@ -389,10 +389,7 @@ def customerDelete(customer_id):
 def messageDelete(message_id):
 
     try:
-        message = db_session.query(Message).filter_by(id=message_id)
-        print ("message_id = %s, message on database it = %s , %s" %
-               (message_id, message.id, message.message))
-    # pdb.set_trace()
+        # pdb.set_trace()
         db_session.delete(message)
         db_session.commit()
         flash("%s was sucessfully Deleted!" % message.message)
