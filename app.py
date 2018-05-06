@@ -449,6 +449,7 @@ def newInboundMessage():
     print ("User %s" % User)
     outro = db_session.query(User).all()
     print ("outro", outro[0].phone)
+    pdb.set_trace()
     print("outro depois", dir(outro))
     print("depois", outro.count())
     teste = db_session.query(User).filter(User.phone == '17323605788')
