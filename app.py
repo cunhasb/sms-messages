@@ -441,48 +441,48 @@ def newInboundMessage():
     If customer does not exist add to database.
     """
     # try:
-        print ('requestform', request.form)
-        tel = str(request.form['To'])
-        print (tel)
-        print("type %s" % type(tel))
-        print ("session %s" % db_session)
-        print ("User %s" % User)
-        outro = db_session.query(User).all()
-        print ("outro", outro[0].phone)
-        print("outro depois", dir(outro))
-        print("depois", outro.count())
-        teste = db_session.query(User).filter(User.phone == '17323605788')
-        print('teste %s,%s' % (teste, teste.first().phone))
-        first = db_session.query(User).filter_by(phone='17323605788')
-        print ("first %s" % first)
-        print ("first_phone %s" % first.one().phone)
-        print("type(%s) = %s - type of To=%s %s, tel=to== %s" % (first.phone, type(phone),
-                                                                 tel, type(tel), tel == first.phone))
-        print('first=%s' % first.first().phone)
-        user = db_session.query(User).filter_by(
-            phone=tel).one()
+    print ('requestform', request.form)
+    tel = str(request.form['To'])
+    print (tel)
+    print("type %s" % type(tel))
+    print ("session %s" % db_session)
+    print ("User %s" % User)
+    outro = db_session.query(User).all()
+    print ("outro", outro[0].phone)
+    print("outro depois", dir(outro))
+    print("depois", outro.count())
+    teste = db_session.query(User).filter(User.phone == '17323605788')
+    print('teste %s,%s' % (teste, teste.first().phone))
+    first = db_session.query(User).filter_by(phone='17323605788')
+    print ("first %s" % first)
+    print ("first_phone %s" % first.one().phone)
+    print("type(%s) = %s - type of To=%s %s, tel=to== %s" % (first.phone, type(phone),
+                                                             tel, type(tel), tel == first.phone))
+    print('first=%s' % first.first().phone)
+    user = db_session.query(User).filter_by(
+        phone=tel).one()
 
-        if user:
-            customer = db_session.query(
-                User_Customer).filter_by(phone=request.form['From']).first()
-            if customer:
-                if request.form['Text'] == "UNSUBSCRIBE":
-                    customer.status = "UNSUBSCRIBED"
-            else:
-                customer = User_Customer(
-                    name='UNKNOWN', phone=request.form['From'], user_id=user.id, status="SUBSCRIBED")
-                db_session.add(customer)
-                db_session.commit()
-
-            newMessage = Message(
-                user_id=user.id, user_customer_id=customer.id, message_uuid=request.form['MessageUUID'], message=request.form['Text'], direction="inbound", status="RECEIVED",
-                units=request.form["Units"],
-                total_rate=request.form["TotalRate"],
-                total_amount=request.form["TotalAmount"], error_code="200", message_time=datetime.datetime.now())
-
-            db_session.add(newMessage)
+    if user:
+        customer = db_session.query(
+            User_Customer).filter_by(phone=request.form['From']).first()
+        if customer:
+            if request.form['Text'] == "UNSUBSCRIBE":
+                customer.status = "UNSUBSCRIBED"
+        else:
+            customer = User_Customer(
+                name='UNKNOWN', phone=request.form['From'], user_id=user.id, status="SUBSCRIBED")
+            db_session.add(customer)
             db_session.commit()
-            return jsonify(newMessage.serialize)
+
+        newMessage = Message(
+            user_id=user.id, user_customer_id=customer.id, message_uuid=request.form['MessageUUID'], message=request.form['Text'], direction="inbound", status="RECEIVED",
+            units=request.form["Units"],
+            total_rate=request.form["TotalRate"],
+            total_amount=request.form["TotalAmount"], error_code="200", message_time=datetime.datetime.now())
+
+        db_session.add(newMessage)
+        db_session.commit()
+        return jsonify(newMessage.serialize)
     # # except:
     #     print('Something went wrong, rolling back transaction!')
     #     db_session.rollback()
