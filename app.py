@@ -419,8 +419,10 @@ def messageDelete(message_id):
 @app.route('/message/status', methods=['POST'])
 def statusMessage():
     try:
+        print ('requestform', request.form)
+        messageUuid = str(request.form['MessageUUID'])
         message = db_session.query(Message).filter_by(
-            message_uuid=request.form["MessageUUID"])
+            message_uuid=messageUuid)
         message.update({"status": request.form["Status"],
                         "units": request.form["Units"],
                         "total_rate": request.form["TotalRate"],
