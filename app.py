@@ -389,10 +389,11 @@ def customerDelete(customer_id):
 def messageDelete(message_id):
 
     try:
-        # pdb.set_trace()
+        message = db_session.query(Message).get(message_id)
         db_session.delete(message)
         db_session.commit()
-        flash("%s was sucessfully Deleted!" % message.message)
+        flash("The message '%s' from %s was sucessfully Deleted!" %
+              (message.message, message.customer.name))
         sms_messages = db_session.query(Message).filter_by(
             user_id=current_user.id).order_by(Message.id.desc()).all()
         return render_template('/messages/messages.html', sms_messages=sms_messages)

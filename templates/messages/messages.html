@@ -46,7 +46,7 @@
                 <!-- <div class "card-body bg-light"> -->
                     <div class ="card-body " style="background-color: rgba(21, 152, 175,0.1)">
                 {%endif%}
-                  <h5 class="card-title">{{smsMessage.customer.name}}</h5>
+                  <h5 id='{{"card-id-%s"%smsMessage.id}}'data-message="{{smsMessage.message}}" data-from="{{smsMessage.customer.name}}" data-messageclass="card-title">{{smsMessage.customer.name}}</h5>
                   <p class = 'card-text'>{{"Phone: %s"%(smsMessage.customer.phone)}}</p>
                   <p class = 'card-text'>{{"Message: %s"%smsMessage.message}}</p>
                   <p class = 'card-text'>{{"Status: %s"%smsMessage.status}}</p>
@@ -58,7 +58,7 @@
                       <!-- <button type="button" class="btn btn-sm btn-outline-dark">View</button>
                       <button type="button" class="btn btn-sm btn-outline-dark">Reply</button> -->
 
-                      <button type="button" class="btn btn-sm btn-outline-secondary" data-toggle="modal" data-target="#confirmDeleteModalCenter">Delete</button>
+                      <button id="deleteButton"onclick='{{"saveIdToDeleteButton(%s)"%smsMessage.id}}' type="button" class="btn btn-sm btn-outline-secondary" data-toggle="modal" data-target="#confirmDeleteModalCenter">Delete</button>
 
 
                     </div>
@@ -78,11 +78,11 @@
                     </button>
                   </div>
                   <div class="modal-body">
-                    {{"Are you Sure you want to delete %s?"%smsMessage.text }}
+                    <p id="confirmationMessage"></p>
                   </div>
                   <div class="modal-footer">
                     <button type="button" class="btn btn-success" data-dismiss="modal">Cancel</button>
-                    <a href={{"/message/%s/delete"%smsMessage.id}} class="btn btn-danger">{{smsMessage.id}} - Delete</a>
+                    <a id="confirmDelete" href="#" class="btn btn-danger">Delete</a>
                   </div>
                 </div>
               </div>
@@ -91,6 +91,17 @@
           </div>
         </div>
       </div>
-
+      <script>
+      function saveIdToDeleteButton(id) {
+  element = document.getElementById("confirmDelete");
+  modalBody = document.getElementById("confirmationMessage");
+  card = document.getElementById(`card-id-${id}`);
+  element.href = `${window.location.origin}/message/${id}/delete`;
+  modalBody.innerText = `Are you sure you want to delete the message "${
+    card.dataset.message
+  }" from ${card.dataset.from}?`;
+  console.log(modalBody);
+}
+</script>
     </main>
 {% endblock %}
