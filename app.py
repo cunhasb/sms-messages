@@ -424,9 +424,9 @@ def statusMessage():
         message = db_session.query(Message).filter_by(
             message_uuid=messageUuid)
         message.update({"status": request.form["Status"],
-                        "units": int(request.form["Units"] | | 1),
-                        "total_rate": request.form["TotalRate" | | "0.0"],
-                        "total_amount": request.form["TotalAmount"] | | "0.0",
+                        "units": int(request.form["Units"] or 1),
+                        "total_rate": request.form["TotalRate" or "0.0"],
+                        "total_amount": request.form["TotalAmount"] or "0.0",
                         "message_time": datetime.datetime.now()})
         db_session.commit()
         print(message.one().serialize)
