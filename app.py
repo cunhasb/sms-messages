@@ -440,7 +440,7 @@ def newInboundMessage():
     """ This page will be for all inbound messages, check if customer exists if so, check content of message if == "UNSUBSCRIBE", change user status.
     If customer does not exist add to database.
     """
-    try:
+    # try:
         print ('requestform', request.form)
         tel = str(request.form['To'])
         print (tel)
@@ -449,9 +449,8 @@ def newInboundMessage():
         print ("User %s" % User)
         outro = db_session.query(User).all()
         print ("outro", outro[0].phone)
-        print("outro depois", outro.filter_by(
-            phone='17323605788').first())
-        print("depois", outro.filter_by(phone=tel).count())
+        print("outro depois", dir(outro))
+        print("depois", outro.count())
         teste = db_session.query(User).filter(User.phone == '17323605788')
         print('teste %s,%s' % (teste, teste.first().phone))
         first = db_session.query(User).filter_by(phone='17323605788')
@@ -484,10 +483,10 @@ def newInboundMessage():
             db_session.add(newMessage)
             db_session.commit()
             return jsonify(newMessage.serialize)
-    except:
-        print('Something went wrong, rolling back transaction!')
-        db_session.rollback()
-        db_session.commit()
+    # # except:
+    #     print('Something went wrong, rolling back transaction!')
+    #     db_session.rollback()
+    #     db_session.commit()
 
 
 @app.route('/users/JSON/')
