@@ -388,9 +388,11 @@ def customerDelete(customer_id):
 @login_required
 def messageDelete(message_id):
 
-    message = db_session.query(Message).get(message_id)
-    # pdb.set_trace()
     try:
+        message = db_session.query(Message).get(message_id)
+        print ("message_id = %s, message on database it = %s , %s" %
+               (message_id, message.id, message.message))
+    # pdb.set_trace()
         db_session.delete(message)
         db_session.commit()
         flash("%s was sucessfully Deleted!" % message.message)
