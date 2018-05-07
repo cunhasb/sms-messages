@@ -1,4 +1,4 @@
-# SMS - Messeger
+# SMS - Messenger
 
 Built using Python and Flask with Postgresql database
 
