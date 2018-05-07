@@ -24,4 +24,4 @@ Flow:
 5 - All messages (sent and received) are displayed in the message page, Whenever someone sends you a message and his number is not in your database it will create a new customer with that number.
 
 hosted site 
-https://messenger-sms.herokuapp.com/
+https://sms-messages.herokuapp.com/
