@@ -225,7 +225,7 @@ def newMessage():
                 src=current_user.phone,
                 dst="<".join(destinationNumbers),
                 text=request.form['message'],
-                url="https://sms-messeger.herokuapp.com/message/status")
+                url="https://sms-messages.herokuapp.com/message/status")
 
             # message_uuid = []
             # for i in destinationNumbers:
